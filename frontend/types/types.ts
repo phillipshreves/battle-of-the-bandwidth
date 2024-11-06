@@ -1,0 +1,29 @@
+export interface ServerData {
+    name: string;
+    url: string;
+}
+
+export interface ClientData {
+    ip: string;
+    hostname: string;
+    city: string;
+    region: string;
+    country: string;
+    loc: string;
+    org: string;
+    postal: string;
+    timezone: string;
+}
+
+export interface SpeedTestData {
+    timestamp: string;
+    server: ServerData;
+    client: ClientData;
+    bytes_sent: number;
+    bytes_received: number;
+    ping: number;
+    jitter: number;
+    upload: number;
+    download: number;
+    share: string;
+}
