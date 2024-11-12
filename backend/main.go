@@ -41,7 +41,6 @@ type SpeedTestResult struct {
 }
 
 var db *pgx.Conn
-var latestResult SpeedTestResult
 
 // Initialize and connect to the database with retry logic.
 func initDB() error {
@@ -134,18 +133,6 @@ func fetchFilteredResults(startDate, endDate string, serverName string, limit, o
 	if endDate == "" {
 		endDate = "2500-01-01T00:00:00.000-00"
 	}
-	//query := `
-	//    SELECT
-	//        timestamp, server_name, server_url, client_ip, client_hostname,
-	//        client_city, client_region, client_country, client_loc, client_org,
-	//        client_postal, client_timezone, bytes_sent, bytes_received,
-	//        ping, jitter, upload, download, share
-	//    FROM speedtest_results
-	//    WHERE ($1::timestamptz IS NULL OR timestamp >= $1)
-	//    AND ($2::timestamptz IS NULL OR timestamp <= $2)
-	//    AND ($3::text IS NULL OR server_name = $3)
-	//    LIMIT $4 OFFSET $5
-	//`
 	query := `
         SELECT 
             timestamp, server_name, server_url, client_ip, client_hostname,
@@ -155,11 +142,12 @@ func fetchFilteredResults(startDate, endDate string, serverName string, limit, o
         FROM speedtest_results
         WHERE ($1::timestamptz IS NULL OR timestamp >= $1)
         AND ($2::timestamptz IS NULL OR timestamp <= $2)
-        LIMIT $3 OFFSET $4
+        AND ($3 = '' OR server_name = $3)
+        ORDER BY timestamp DESC
+        LIMIT $4 OFFSET $5
     `
 
-	//rows, err := db.Query(context.Background(), query, startDate, endDate, serverName, limit, offset)
-	rows, err := db.Query(context.Background(), query, startDate, endDate, limit, offset)
+	rows, err := db.Query(context.Background(), query, startDate, endDate, serverName, limit, offset)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch results: %w", err)
 	}
@@ -217,8 +205,6 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-
-	log.Println("limit: ", limit, "limitStr: ", limitStr)
 
 	results, err := fetchFilteredResults(startDate, endDate, serverName, limit, offset)
 	if err != nil {

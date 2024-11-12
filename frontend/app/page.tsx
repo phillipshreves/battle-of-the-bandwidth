@@ -13,18 +13,26 @@ interface FetchFilters {
   offset?: number;
 }
 
+const defaultSpeedTestData: SpeedTestData = {
+  timestamp: '2024-11-12T04:46:15Z',
+  server: { name: 'example', url: '' },
+  client: { ip: '', hostname: '', city: '', region: '', country: '', loc: '', org: '', postal: '', timezone: '' },
+  bytes_sent: 1, bytes_received: 1, ping: 1, jitter: 1, upload: 1, download: 1, share: ''
+};
+
 async function fetchSpeedTestData(filters: FetchFilters): Promise<SpeedTestData[]> {
   const query = new URLSearchParams(filters as Record<string, string>).toString();
   try {
     const response = await fetch(`/api/speedtest?${query}`);
     if (!response.ok) {
       const errorMessage = await response.text();
-      throw new Error(`Error fetching speed test data: ${errorMessage}`);
+      console.error(`Error fetching speed test data: ${errorMessage}`);
+      return [defaultSpeedTestData];
     }
     return await response.json();
   } catch (error) {
     console.error("Error fetching data:", error);
-    throw new Error("Error fetching speed test data");
+      return [defaultSpeedTestData];
   }
 }
 
@@ -32,8 +40,9 @@ export default function Home() {
   const [data, setData] = useState<SpeedTestData[]>([]);
   const [dateRange, setDateRange] = useState<[string | null, string | null]>([null, null]);
   const [server, setServer] = useState<string | null>(null);
-  const [limit, setLimit] = useState<number>(10);
-  const [offset] = useState<number>(0);
+  const [limit, setLimit] = useState<number>(20);
+  const [offset, setOffset] = useState<number>(0);
+  const [isAdvancedFiltersOpen, setIsAdvancedFiltersOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -116,6 +125,16 @@ export default function Home() {
     setLimit(isNaN(newLimit) ? 10 : newLimit);
   };
 
+  const handlePreviousPage = () => {
+    if (offset - limit >= 0) {
+      setOffset(offset - limit);
+    }
+  };
+
+  const handleNextPage = () => {
+    setOffset(offset + limit);
+  };
+
   return (
     <div className="min-h-screen p-8 relative overflow-hidden">
       {/* Background gradient */}
@@ -130,59 +149,108 @@ export default function Home() {
         </header>
 
         <div className="glass-card p-6 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-secondary">Start Date</label>
+          {/* Date Range Filters */}
+          <div className="flex flex-wrap gap-8">
+            <div className="flex items-center gap-3">
+              <label className="text-sm font-medium text-secondary whitespace-nowrap">Start Date</label>
               <input
                 type="date"
-                className="w-full px-4 py-2 rounded-lg bg-background/80 border border-secondary/20 
+                className="px-4 py-2 rounded-lg bg-background/80 border border-secondary/20 
                          focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none
-                         transition-colors duration-200 text-foreground"
+                         transition-colors duration-200 text-background"
                 value={dateRange[0] || ''}
                 onChange={(e) => handleDateChange(0, e.target.value)}
               />
             </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-secondary">End Date</label>
+            <div className="flex items-center gap-3">
+              <label className="text-sm font-medium text-secondary whitespace-nowrap">End Date</label>
               <input
                 type="date"
-                className="w-full px-4 py-2 rounded-lg bg-background/80 border border-secondary/20 
+                className="px-4 py-2 rounded-lg bg-background/80 border border-secondary/20 
                          focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none
-                         transition-colors duration-200 text-foreground"
+                         transition-colors duration-200 text-background"
                 value={dateRange[1] || ''}
                 onChange={(e) => handleDateChange(1, e.target.value)}
               />
             </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-secondary">Server</label>
-              <select
-                className="w-full h-[38px] px-4 py-2 rounded-lg bg-background/80 border border-secondary/20 
-                         focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none
-                         transition-colors duration-200 text-foreground"
-                value={server || ''}
-                onChange={(e) => handleServerChange(e.target.value)}
+          </div>
+
+          {/* Advanced Filters Dropdown */}
+          <div className="border-t border-secondary/20 pt-4">
+            <button
+              onClick={() => setIsAdvancedFiltersOpen(!isAdvancedFiltersOpen)}
+              className="flex items-center gap-2 text-secondary hover:text-primary transition-colors"
+            >
+              <span>Advanced Filters</span>
+              <svg
+                className={`w-4 h-4 transform transition-transform ${
+                  isAdvancedFiltersOpen ? 'rotate-180' : ''
+                }`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
               >
-                <option value="">All Servers</option>
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-secondary">Results Limit</label>
-              <input
-                type="number"
-                className="w-full px-4 py-2 rounded-lg bg-background/80 border border-secondary/20 
-                         focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none
-                         transition-colors duration-200 text-foreground"
-                value={limit}
-                onChange={(e) => handleLimitChange(e.target.value)}
-              />
-            </div>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            
+            {isAdvancedFiltersOpen && (
+              <div className="mt-4 space-y-4">
+                <div className="flex items-center gap-4">
+                  <label className="text-sm font-medium text-secondary w-32">Server Selection</label>
+                  <select
+                    className="flex-1 px-4 py-2 rounded-lg bg-background/80 border border-secondary/20 
+                             focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none
+                             transition-colors duration-200 text-background"
+                    value={server || ''}
+                    onChange={(e) => handleServerChange(e.target.value)}
+                  >
+                    <option value="">Select Server</option>
+                  </select>
+                </div>
+                <div className="flex items-center gap-4">
+                  <label className="text-sm font-medium text-secondary w-32">Max Data Points</label>
+                  <input
+                    type="number"
+                    className="flex-1 px-4 py-2 rounded-lg bg-background/80 border border-secondary/20 
+                             focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none
+                             transition-colors duration-200 text-background"
+                    value={limit}
+                    onChange={(e) => handleLimitChange(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Data Point Pagination */}
+          <div className="flex items-center justify-center gap-4 py-4">
+            <button
+              className="px-4 py-2 rounded-lg bg-secondary/10 hover:bg-secondary/20 
+                       transition-colors duration-200 text-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handlePreviousPage}
+              disabled={offset === 0}
+            >
+              ← Newer
+            </button>
+            <span className="text-secondary">
+              Showing {offset + 1} - {offset + Math.min(limit, data.length)} results
+            </span>
+            <button
+              className="px-4 py-2 rounded-lg bg-secondary/10 hover:bg-secondary/20 
+                       transition-colors duration-200 text-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleNextPage}
+              disabled={data.length < limit}
+            >
+              Older →
+            </button>
           </div>
 
           <div className="h-[600px] glass-card p-6">
-            {chartData.every(serie => serie.data.length > 0) ? (
+            {data.length > 0 ? (
               <ResponsiveLine
                 data={chartData}
-                margin={{ top: 50, right: 110, bottom: 80, left: 60 }}
+                margin={{ top: 20, right: 180, bottom: 120, left: 100 }}
                 xScale={{ type: 'point' }}
                 yScale={{
                   type: 'linear',
@@ -195,7 +263,7 @@ export default function Home() {
                   tickSize: 5,
                   tickPadding: 5,
                   tickRotation: -45,
-                  legend: 'Time',
+                  legend: '',
                   legendOffset: 36,
                   legendPosition: 'middle'
                 }}
@@ -268,7 +336,7 @@ export default function Home() {
               />
             ) : (
               <div className="flex items-center justify-center h-full">
-                <p className="text-secondary">No data available for the selected filters</p>
+                <p className="text-secondary">No results found</p>
               </div>
             )}
           </div>
