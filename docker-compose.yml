@@ -9,8 +9,8 @@ services:
     ports:
       - "40080:3000"
     depends_on:
-      - backend
-      - db
+      - botb-backend
+      - botb-db
 
   botb-backend:
     build:
@@ -24,7 +24,7 @@ services:
       - DB_PASSWORD=postgres
       - DB_NAME=botb
     depends_on:
-      - db
+      - botb-db
 
   botb-db:
     image: postgres:13
