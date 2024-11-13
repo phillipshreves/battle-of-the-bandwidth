@@ -1,45 +1,41 @@
 services:
-  frontend:
+  botb-frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: speedtest-frontend
+    container_name: botb-frontend
     environment:
-      - BACKEND_URL=http://backend:8080
+      - BACKEND_URL=http://botb-backend:8080
     ports:
-      - "3000:3000"
+      - "40080:3000"
     depends_on:
       - backend
       - db
 
-  backend:
+  botb-backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: speedtest-backend
+    container_name: botb-backend
     environment:
       - DB_HOST=db
       - DB_PORT=5432
       - DB_USER=postgres
       - DB_PASSWORD=postgres
-      - DB_NAME=speedtest_db
-#    ports:
-#      - "8080:8080"
+      - DB_NAME=botb
     depends_on:
       - db
 
-  db:
+  botb-db:
     image: postgres:13
-    container_name: speedtest-db
+    container_name: botb-db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: speedtest_db
+      POSTGRES_DB: botb
     volumes:
       - db_data:/var/lib/postgresql/data
       - ./backend/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
-#    ports:
-#      - "5432:5432"  # Expose the database on port 5432 (optional for local access)
 
 volumes:
   db_data:

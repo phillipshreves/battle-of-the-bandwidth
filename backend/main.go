@@ -113,6 +113,8 @@ func runSpeedTest() {
 		return
 	}
 
+	log.Printf("Output: %s", output)
+
 	var results []SpeedTestResult
 	if err := json.Unmarshal(output, &results); err != nil {
 		log.Printf("Error parsing JSON: %v", err)
