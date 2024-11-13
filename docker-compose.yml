@@ -18,7 +18,7 @@ services:
       dockerfile: Dockerfile
     container_name: botb-backend
     environment:
-      - DB_HOST=db
+      - DB_HOST=botb-db
       - DB_PORT=5432
       - DB_USER=postgres
       - DB_PASSWORD=postgres
