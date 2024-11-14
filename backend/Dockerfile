@@ -20,10 +20,10 @@ RUN go mod download
 COPY .. .
 
 # Build the Go application
-RUN go build -o speedtest-app
+RUN go build -o botb-backend
 
 # Expose the app's port
 EXPOSE 8080
 
 # Start the application
-CMD ["./speedtest-app"]
+CMD ["./botb-backend"]
