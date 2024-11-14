@@ -86,22 +86,33 @@ func storeResult(result SpeedTestResult) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	_, err := db.Exec(ctx, `
+	errCount := 0
+	errCountMax := 0
+	var err error
+
+	for errCount < errCountMax {
+		_, err = db.Exec(ctx, `
         INSERT INTO speedtest_results (
             timestamp, server_name, server_url, 
             client_ip, client_hostname, client_city, client_region, client_country, client_loc, client_org, client_postal, client_timezone,
             bytes_sent, bytes_received, ping, jitter, upload, download, share
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`,
-		result.Timestamp, result.Server.Name, result.Server.URL,
-		result.Client.IP, result.Client.Hostname, result.Client.City, result.Client.Region, result.Client.Country, result.Client.Loc, result.Client.Org, result.Client.Postal, result.Client.Timezone,
-		result.BytesSent, result.BytesReceived, result.Ping, result.Jitter, result.Upload, result.Download, result.Share,
-	)
-	if err != nil {
-		return fmt.Errorf("failed to store speed test result: %w", err)
+			result.Timestamp, result.Server.Name, result.Server.URL,
+			result.Client.IP, result.Client.Hostname, result.Client.City, result.Client.Region, result.Client.Country, result.Client.Loc, result.Client.Org, result.Client.Postal, result.Client.Timezone,
+			result.BytesSent, result.BytesReceived, result.Ping, result.Jitter, result.Upload, result.Download, result.Share,
+		)
+
+		if err == nil {
+			log.Printf("Successfully stored result for %s", result.Timestamp)
+			return nil
+		}
+
+		fmt.Printf("failed to store speed test result: %w", err)
+		time.Sleep(time.Second)
+		errCount++
 	}
 
-	log.Printf("Successfully stored result for %s", result.Timestamp)
-	return nil
+	return fmt.Errorf("failed to store speed test result: %w", err)
 }
 
 // Run a speed test and handle errors gracefully.
