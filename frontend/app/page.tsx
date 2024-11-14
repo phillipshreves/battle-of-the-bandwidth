@@ -43,6 +43,7 @@ export default function Home() {
     const [limit, setLimit] = useState<number>(20);
     const [offset, setOffset] = useState<number>(0);
     const [isAdvancedFiltersOpen, setIsAdvancedFiltersOpen] = useState(false);
+    const [availableServers, setAvailableServers] = useState<string[]>([]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -61,6 +62,20 @@ export default function Home() {
         };
         fetchData();
     }, [dateRange, server, limit, offset]);
+
+    useEffect(() => {
+        const fetchServers = async () => {
+            try {
+                const response = await fetch('/api/server-names');
+                if (!response.ok) throw new Error("Failed to fetch server names");
+                const servers = await response.json();
+                setAvailableServers(servers);
+            } catch (error) {
+                console.error("Error fetching server names:", error);
+            }
+        };
+        fetchServers();
+    }, []);
 
     let chartData: Serie[];
     if (!data || data.length === 0) {
@@ -221,7 +236,12 @@ export default function Home() {
                                         value={server || ''}
                                         onChange={(e) => handleServerChange(e.target.value)}
                                     >
-                                        <option value="">Select Server</option>
+                                        <option value="">All Servers</option>
+                                        {availableServers.map((serverName) => (
+                                            <option key={serverName} value={serverName}>
+                                                {serverName}
+                                            </option>
+                                        ))}
                                     </select>
                                 </div>
                                 <div className="flex items-center gap-4">
@@ -321,6 +341,11 @@ export default function Home() {
                                         text: {
                                             fill: 'var(--foreground)'
                                         }
+                                    },
+                                    tooltip: {
+                                        container: {
+                                            color: 'var(--background)'
+                                        }
                                     }
                                 }}
                                 legends={[
@@ -344,7 +369,6 @@ export default function Home() {
                                                 style: {
                                                     itemBackground: 'rgba(0, 0, 0, .03)',
                                                     itemOpacity: 1,
-                                                    itemTextColor:  'var(--background)'
                                                 }
                                             }
                                         ]
