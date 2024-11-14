@@ -130,7 +130,7 @@ func runSpeedTest() {
 
 func fetchFilteredResults(startDate, endDate string, serverName string, limit, offset int) ([]SpeedTestResult, error) {
 	if startDate == "" {
-		startDate = "1950-01-01T00:00:00.000-00"
+		startDate = "1900-01-01T00:00:00.000-00"
 	}
 	if endDate == "" {
 		endDate = "2500-01-01T00:00:00.000-00"
