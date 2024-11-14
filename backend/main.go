@@ -87,7 +87,7 @@ func storeResult(result SpeedTestResult) error {
 	defer cancel()
 
 	errCount := 0
-	errCountMax := 0
+	errCountMax := 10
 	var err error
 
 	for errCount < errCountMax {

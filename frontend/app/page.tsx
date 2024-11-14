@@ -343,7 +343,8 @@ export default function Home() {
                                                 on: 'hover',
                                                 style: {
                                                     itemBackground: 'rgba(0, 0, 0, .03)',
-                                                    itemOpacity: 1
+                                                    itemOpacity: 1,
+                                                    itemTextColor:  'var(--background)'
                                                 }
                                             }
                                         ]
