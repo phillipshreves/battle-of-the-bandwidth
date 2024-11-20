@@ -12,13 +12,16 @@ import (
 )
 
 func speedTestHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Printf("Speed test method called: %v", r.Method)
 	switch r.Method {
 	case http.MethodGet:
 		getSpeedtests(w, r)
 	case http.MethodPost:
 		runSpeedTestHandler(w, r)
 	default:
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		errorDetails := fmt.Sprintf("Method not allowed: %v", r.Method)
+		fmt.Println(errorDetails)
+		http.Error(w, errorDetails, http.StatusMethodNotAllowed)
 	}
 }
 

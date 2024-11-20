@@ -53,7 +53,7 @@ export default function Settings() {
 
     const runSpeedTestNow = async () => {
         try {
-            const response = await fetch('/api/speedtest/run', {
+            const response = await fetch('/api/speedtest', {
                 method: 'POST',
             });
             if (!response.ok) throw new Error('Failed to run speed test');

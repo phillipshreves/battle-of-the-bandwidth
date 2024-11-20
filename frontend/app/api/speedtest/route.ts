@@ -29,6 +29,7 @@ interface ServerResponse {
 const backendUrl = process.env.BACKEND_URL || 'http://localhost:8080';
 
 export async function GET(request: Request) {
+    // Handle GET request to fetch speed test results
     const url = new URL(request.url);
     const startDate = url.searchParams.get("startDate");
     const endDate = url.searchParams.get("endDate");
@@ -44,14 +45,32 @@ export async function GET(request: Request) {
     if (offset) params.append("offset", offset);
 
     try {
-        const response = await fetch(`${backendUrl}/api/bandwidth?${params.toString()}`);
+        const response = await fetch(`${backendUrl}/api/speedtest?${params.toString()}`);
         if (!response.ok) {
             return NextResponse.json({ error: JSON.stringify(response), data: [] });
         }
 
         const data: ServerResponse[] = await response.json();
-        return NextResponse.json({error: "", data: data});
+        return NextResponse.json({ error: "", data: data });
     } catch (error) {
         return NextResponse.json({ error: (error as Error).message, data: [] });
+    }
+}
+
+export async function POST(request: Request) {
+    // Handle POST request to run the speed test
+    try {
+        const response = await fetch(`${backendUrl}/api/speedtest`, {
+            method: 'POST',
+        });
+
+        if (!response.ok) {
+            return NextResponse.json({ error: response.body, data: {} });
+        }
+
+        const result = await response.json();
+        return NextResponse.json({ error: "", data: result });
+    } catch (error) {
+        return NextResponse.json({ error: (error as Error).message, data: {} });
     }
 }
