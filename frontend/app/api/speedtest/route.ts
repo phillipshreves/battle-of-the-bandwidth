@@ -45,11 +45,13 @@ export async function GET(request: Request) {
 
     try {
         const response = await fetch(`${backendUrl}/api/bandwidth?${params.toString()}`);
-        if (!response.ok) throw new Error("Failed to fetch data from backend");
+        if (!response.ok) {
+            return NextResponse.json({ error: JSON.stringify(response), data: [] });
+        }
 
         const data: ServerResponse[] = await response.json();
-        return NextResponse.json(data);
+        return NextResponse.json({error: "", data: data});
     } catch (error) {
-        return NextResponse.json({ error: (error as Error).message });
+        return NextResponse.json({ error: (error as Error).message, data: [] });
     }
 }

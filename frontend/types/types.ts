@@ -27,3 +27,10 @@ export interface SpeedTestData {
     download: number;
     share: string;
 }
+
+export interface UserSettings {
+    id: number;
+    speedtest_frequency: number;
+    created_at: string;
+    updated_at: string;
+}

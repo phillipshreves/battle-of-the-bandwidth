@@ -4,6 +4,7 @@ import {useState, useEffect} from 'react';
 import {ResponsiveLine, Serie} from '@nivo/line';
 import {format, parseISO} from 'date-fns';
 import {SpeedTestData} from '@/types/types';
+import Settings from './components/Settings';
 
 interface FetchFilters {
     startDate?: string;
@@ -20,19 +21,20 @@ const defaultSpeedTestData: SpeedTestData = {
     bytes_sent: 1, bytes_received: 1, ping: 1, jitter: 1, upload: 1, download: 1, share: ''
 };
 
-async function fetchSpeedTestData(filters: FetchFilters): Promise<SpeedTestData[]> {
+async function fetchSpeedTestData(filters: FetchFilters): Promise<{error: string, data: SpeedTestData[]}> {
     const query = new URLSearchParams(filters as Record<string, string>).toString();
     try {
         const response = await fetch(`/api/speedtest?${query}`);
         if (!response.ok) {
-            const errorMessage = await response.text();
+            const responseJson = await response.json();
+            const errorMessage = responseJson.error;
             console.error(`Error fetching speed test data: ${errorMessage}`);
-            return [defaultSpeedTestData];
+            return {error: errorMessage, data:[defaultSpeedTestData]};
         }
         return await response.json();
     } catch (error) {
-        console.error("Error fetching data:", error);
-        return [defaultSpeedTestData];
+        console.error("Error fetching data:", JSON.stringify(error));
+        return {error: `Error fetching data: ${error}`, data:[defaultSpeedTestData]};
     }
 }
 
@@ -55,8 +57,10 @@ export default function Home() {
                     limit,
                     offset,
                 });
-                setData(result);
+                console.log(`result.data: ${result.data}`)
+                setData(result.data);
             } catch (error) {
+                console.log("test")
                 console.error("Error fetching data:", error);
             }
         };
@@ -69,7 +73,7 @@ export default function Home() {
                 const response = await fetch('/api/server-names');
                 if (!response.ok) throw new Error("Failed to fetch server names");
                 const servers = await response.json();
-                setAvailableServers(servers);
+                setAvailableServers(servers.data);
             } catch (error) {
                 console.error("Error fetching server names:", error);
             }
@@ -94,13 +98,14 @@ export default function Home() {
             } as Serie,
         ];
     } else {
+        console.log(`data: ${data}`)
+        console.log(`data: ${JSON.stringify(data)}`)
         chartData = [
             {
                 id: "Download Speed (Mbps)",
                 data: data
                     .filter(item =>
                         item?.timestamp &&
-                        typeof item.download === 'number' &&
                         Number.isFinite(item.download)
                     )
                     .map((item) => ({
@@ -113,8 +118,6 @@ export default function Home() {
                 data: data
                     .filter(item =>
                         item?.timestamp &&
-                        item.upload !== null &&
-                        item.upload !== undefined &&
                         !isNaN(item.upload) &&
                         Number.isFinite(Number(item.upload))
                     )
@@ -128,8 +131,6 @@ export default function Home() {
                 data: data
                     .filter(item =>
                         item?.timestamp &&
-                        item.ping !== null &&
-                        item.ping !== undefined &&
                         !isNaN(item.ping) &&
                         Number.isFinite(Number(item.ping))
                     )
@@ -167,7 +168,7 @@ export default function Home() {
     };
 
     return (
-        <div className="min-h-screen p-8 relative overflow-hidden">
+        <main className="min-h-screen p-8">
             {/* Background gradient */}
             <div className="gradient-bg fixed inset-0 -z-10"/>
 
@@ -383,6 +384,9 @@ export default function Home() {
                     </div>
                 </div>
             </div>
-        </div>
+
+            {/* Add Settings component */}
+            <Settings />
+        </main>
     );
 }
