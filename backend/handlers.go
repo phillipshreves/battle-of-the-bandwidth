@@ -12,7 +12,6 @@ import (
 )
 
 func speedTestHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("Speed test method called: %v", r.Method)
 	switch r.Method {
 	case http.MethodGet:
 		getSpeedtests(w, r)
@@ -20,7 +19,6 @@ func speedTestHandler(w http.ResponseWriter, r *http.Request) {
 		runSpeedTestHandler(w, r)
 	default:
 		errorDetails := fmt.Sprintf("Method not allowed: %v", r.Method)
-		fmt.Println(errorDetails)
 		http.Error(w, errorDetails, http.StatusMethodNotAllowed)
 	}
 }
@@ -247,5 +245,4 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 func runSpeedTestHandler(w http.ResponseWriter, r *http.Request) {
 	go runSpeedTest()                  // Run the speed test in a goroutine
 	w.WriteHeader(http.StatusAccepted) // Respond with 202 Accepted
-	fmt.Println("Speed test is running")
 }

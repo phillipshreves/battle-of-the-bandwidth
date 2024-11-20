@@ -74,7 +74,7 @@ export async function POST() {
         const result = await response.json();
         return NextResponse.json({ error: "", data: result });
     } catch (error) {
-        console.log(`POST error: ${JSON.stringify(error)}`)
+        console.log(`POST error: ${error}`)
         console.log(`POST error JSON: ${JSON.stringify(error)}`)
         return NextResponse.json({ error: (error as Error).message, data: {} });
     }
