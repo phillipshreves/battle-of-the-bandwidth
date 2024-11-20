@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"time"
@@ -27,7 +28,7 @@ func main() {
 			if err := row.Scan(&frequency); err != nil {
 				log.Printf("Failed to retrieve speed test frequency: %v", err)
 				// Default to 1 minute if there's an error
-				time.Sleep(1 * time.Min)
+				time.Sleep(1 * time.Minute)
 				continue
 			}
 
