@@ -11,6 +11,11 @@ import (
 	"time"
 )
 
+type defaultJsonResponse struct {
+	data  string
+	error string
+}
+
 func speedTestHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
@@ -239,10 +244,29 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent) // No content to return
+	response := defaultJsonResponse{
+		data:  "{}",
+		error: "{}",
+	}
+
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Failed to encode settings to JSON", http.StatusInternalServerError)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 }
 
 func runSpeedTestHandler(w http.ResponseWriter, r *http.Request) {
 	go runSpeedTest() // Run the speed test in a goroutine
-	w.WriteHeader(http.StatusNoContent)
+	response := defaultJsonResponse{
+		data:  "{}",
+		error: "{}",
+	}
+
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Failed to encode settings to JSON", http.StatusInternalServerError)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 }
