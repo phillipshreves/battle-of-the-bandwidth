@@ -11,6 +11,17 @@ import (
 	"time"
 )
 
+func speedTestHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		getSpeedtests(w, r)
+	case http.MethodPost:
+		runSpeedTestHandler(w, r)
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
 func getSpeedtests(w http.ResponseWriter, r *http.Request) {
 	// Parse query parameters
 	startDate := r.URL.Query().Get("startDate")
@@ -221,10 +232,17 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 	}
 
 	query := `UPDATE user_settings SET speedtest_frequency = $1, updated_at = CURRENT_TIMESTAMP`
-	if _, err := db.Exec(context.Background(), query, settings.SpeedtestFrequency, settings.ID); err != nil {
+	if _, err := db.Exec(context.Background(), query, settings.SpeedtestFrequency); err != nil {
+		fmt.Println(err)
 		http.Error(w, fmt.Sprintf("Failed to update settings: %v", err), http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusNoContent) // No content to return
+}
+
+func runSpeedTestHandler(w http.ResponseWriter, r *http.Request) {
+	go runSpeedTest()                  // Run the speed test in a goroutine
+	w.WriteHeader(http.StatusAccepted) // Respond with 202 Accepted
+	fmt.Fprint(w, "Speed test is running")
 }

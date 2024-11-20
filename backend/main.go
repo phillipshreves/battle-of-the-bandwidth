@@ -33,9 +33,8 @@ func main() {
 			}
 
 			// Convert frequency from minutes to time.Duration
-			waitTime := time.Duration(frequency) * time.Minute
 			log.Printf("Waiting for %d minutes before the next speed test...", frequency)
-			time.Sleep(waitTime) // Wait for the specified frequency before the next test
+			time.Sleep(time.Duration(frequency) * time.Minute) // Wait for the specified frequency before the next test
 		}
 	}()
 

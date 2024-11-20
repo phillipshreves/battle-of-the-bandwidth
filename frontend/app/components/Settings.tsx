@@ -51,6 +51,20 @@ export default function Settings() {
         }
     };
 
+    const runSpeedTestNow = async () => {
+        try {
+            const response = await fetch('/api/speedtest/run', {
+                method: 'POST',
+            });
+            if (!response.ok) throw new Error('Failed to run speed test');
+            const result = await response.json();
+            setSuccess('Speed test completed successfully');
+            console.log(result);
+        } catch (err) {
+            setError(`Failed to run speed test: ${err}`);
+        }
+    };
+
     return (
         <div className="p-6 bg-slate-800 rounded-lg shadow-lg max-w-md mx-auto mt-8">
             <h2 className="text-2xl font-bold mb-6">Settings</h2>
@@ -66,6 +80,13 @@ export default function Settings() {
                     {success}
                 </div>
             )}
+
+            <button
+                onClick={runSpeedTestNow}
+                className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/80 mb-4"
+            >
+                Run Speed Test Now
+            </button>
 
             <div className="space-y-4">
                 <div>
