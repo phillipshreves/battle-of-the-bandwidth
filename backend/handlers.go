@@ -254,7 +254,6 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
 }
 
 func runSpeedTestHandler(w http.ResponseWriter, r *http.Request) {
@@ -268,5 +267,4 @@ func runSpeedTestHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to encode settings to JSON", http.StatusInternalServerError)
 	}
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
 }
