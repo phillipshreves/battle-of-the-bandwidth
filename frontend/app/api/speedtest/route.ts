@@ -46,7 +46,6 @@ export async function GET(request: Request) {
 
     try {
         const response = await fetch(`${backendUrl}/api/speedtest?${params.toString()}`);
-        console.log(`GET: ${response.body}`)
         if (!response.ok) {
             return NextResponse.json({ error: JSON.stringify(response), data: [] });
         }
@@ -65,7 +64,6 @@ export async function POST() {
         const response = await fetch(`${backendUrl}/api/speedtest`, {
             method: 'POST',
         });
-        console.log(`POST: ${response.body}`)
 
         if (!response.ok) {
             return NextResponse.json({ error: response.body, data: {} });
