@@ -247,5 +247,5 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 func runSpeedTestHandler(w http.ResponseWriter, r *http.Request) {
 	go runSpeedTest()                  // Run the speed test in a goroutine
 	w.WriteHeader(http.StatusAccepted) // Respond with 202 Accepted
-	fmt.Fprint(w, "Speed test is running")
+	fmt.Println("Speed test is running")
 }

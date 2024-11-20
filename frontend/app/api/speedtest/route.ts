@@ -46,6 +46,7 @@ export async function GET(request: Request) {
 
     try {
         const response = await fetch(`${backendUrl}/api/speedtest?${params.toString()}`);
+        console.log(`GET: ${response.body}`)
         if (!response.ok) {
             return NextResponse.json({ error: JSON.stringify(response), data: [] });
         }
@@ -53,6 +54,7 @@ export async function GET(request: Request) {
         const data: ServerResponse[] = await response.json();
         return NextResponse.json({ error: "", data: data });
     } catch (error) {
+        console.log(`GET error: ${JSON.stringify(error)}`)
         return NextResponse.json({ error: (error as Error).message, data: [] });
     }
 }
@@ -63,6 +65,7 @@ export async function POST() {
         const response = await fetch(`${backendUrl}/api/speedtest`, {
             method: 'POST',
         });
+        console.log(`POST: ${response.body}`)
 
         if (!response.ok) {
             return NextResponse.json({ error: response.body, data: {} });
@@ -71,6 +74,8 @@ export async function POST() {
         const result = await response.json();
         return NextResponse.json({ error: "", data: result });
     } catch (error) {
+        console.log(`POST error: ${JSON.stringify(error)}`)
+        console.log(`POST error JSON: ${JSON.stringify(error)}`)
         return NextResponse.json({ error: (error as Error).message, data: {} });
     }
 }
