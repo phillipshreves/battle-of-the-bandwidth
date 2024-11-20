@@ -4,16 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/jackc/pgx/v5"
 	"log"
 	"net/http"
-	"os"
 	"os/exec"
 	"strconv"
 	"time"
 )
-
-var db *pgx.Conn
 
 func getSpeedtests(w http.ResponseWriter, r *http.Request) {
 	// Parse query parameters
@@ -79,40 +75,6 @@ func getServerNamesHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(serverNames); err != nil {
 		http.Error(w, "Failed to encode results to JSON", http.StatusInternalServerError)
-	}
-}
-
-func initDB() error {
-	dbHost := os.Getenv("DB_HOST")
-	dbPort := os.Getenv("DB_PORT")
-	dbUser := os.Getenv("DB_USER")
-	dbPassword := os.Getenv("DB_PASSWORD")
-	dbName := os.Getenv("DB_NAME")
-
-	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", dbUser, dbPassword, dbHost, dbPort, dbName)
-
-	var err error
-	for retries := 5; retries > 0; retries-- {
-		db, err = pgx.Connect(context.Background(), connStr)
-		if err == nil {
-			if pingErr := db.Ping(context.Background()); pingErr == nil {
-				log.Println("Connected to the database.")
-				return nil
-			} else {
-				err = fmt.Errorf("failed to ping database: %w", pingErr)
-			}
-		}
-		log.Printf("Database connection failed: %v. Retrying in 5 seconds...", err)
-		time.Sleep(5 * time.Second)
-	}
-	return fmt.Errorf("could not connect to database after retries: %w", err)
-}
-
-func closeDB() {
-	if db != nil {
-		if err := db.Close(context.Background()); err != nil {
-			log.Printf("Error closing database connection: %v", err)
-		}
 	}
 }
 
@@ -258,7 +220,7 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	query := `UPDATE user_settings SET speedtest_frequency = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`
+	query := `UPDATE user_settings SET speedtest_frequency = $1, updated_at = CURRENT_TIMESTAMP`
 	if _, err := db.Exec(context.Background(), query, settings.SpeedtestFrequency, settings.ID); err != nil {
 		http.Error(w, fmt.Sprintf("Failed to update settings: %v", err), http.StatusInternalServerError)
 		return
