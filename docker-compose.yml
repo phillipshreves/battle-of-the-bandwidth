@@ -11,6 +11,7 @@ services:
     depends_on:
       - botb-backend
       - botb-db
+    restart: always
 
   botb-backend:
     build:
@@ -27,6 +28,7 @@ services:
       - "8080:8080"
     depends_on:
       - botb-db
+    restart: always
 
   botb-db:
     image: postgres:13
@@ -38,6 +40,7 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
       - ./backend/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+    restart: always
 
 volumes:
   db_data:
