@@ -82,47 +82,46 @@ export default function Home() {
     }, []);
 
     const chartData: Serie[] = [
-            {
-                id: "Download Speed (Mbps)",
-                data: (data || [])
-                    .filter(item =>
-                        item?.timestamp &&
-                        !isNaN(item.download) &&
-                        Number.isFinite(Number(item.download))
-                    )
-                    .map((item) => ({
-                        x: format(parseISO(item.timestamp), 'yyyy-MM-dd HH:mm:ss'),
-                        y: Math.round(Number(item.download) * 100) / 100,
-                    })),
-            } as Serie,
-            {
-                id: "Upload Speed (Mbps)",
-                data: (data || [])
-                    .filter(item =>
-                        item?.timestamp &&
-                        !isNaN(item.upload) &&
-                        Number.isFinite(Number(item.upload))
-                    )
-                    .map((item) => ({
-                        x: format(parseISO(item.timestamp), 'yyyy-MM-dd HH:mm:ss'),
-                        y: Math.round(Number(item.upload) * 100) / 100,
-                    })),
-            } as Serie,
-            {
-                id: "Ping (ms)",
-                data: (data || [])
-                    .filter(item =>
-                        item?.timestamp &&
-                        !isNaN(item.ping) &&
-                        Number.isFinite(Number(item.ping))
-                    )
-                    .map((item) => ({
-                        x: format(parseISO(item.timestamp), 'yyyy-MM-dd HH:mm:ss'),
-                        y: Math.round(Number(item.ping) * 100) / 100,
-                    })),
-            } as Serie,
-        ];
-    }
+        {
+            id: "Download Speed (Mbps)",
+            data: (data || [])
+                .filter(item =>
+                    item?.timestamp &&
+                    !isNaN(item.download) &&
+                    Number.isFinite(Number(item.download))
+                )
+                .map((item) => ({
+                    x: format(parseISO(item.timestamp), 'yyyy-MM-dd HH:mm:ss'),
+                    y: Math.round(Number(item.download) * 100) / 100,
+                })),
+        } as Serie,
+        {
+            id: "Upload Speed (Mbps)",
+            data: (data || [])
+                .filter(item =>
+                    item?.timestamp &&
+                    !isNaN(item.upload) &&
+                    Number.isFinite(Number(item.upload))
+                )
+                .map((item) => ({
+                    x: format(parseISO(item.timestamp), 'yyyy-MM-dd HH:mm:ss'),
+                    y: Math.round(Number(item.upload) * 100) / 100,
+                })),
+        } as Serie,
+        {
+            id: "Ping (ms)",
+            data: (data || [])
+                .filter(item =>
+                    item?.timestamp &&
+                    !isNaN(item.ping) &&
+                    Number.isFinite(Number(item.ping))
+                )
+                .map((item) => ({
+                    x: format(parseISO(item.timestamp), 'yyyy-MM-dd HH:mm:ss'),
+                    y: Math.round(Number(item.ping) * 100) / 100,
+                })),
+        } as Serie
+    ];
 
     const handleDateChange = (index: 0 | 1, value: string) => {
         const newDateRange = [...dateRange];
