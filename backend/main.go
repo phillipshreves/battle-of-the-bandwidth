@@ -19,7 +19,7 @@ func main() {
 	// Run the speed test in a separate goroutine
 	go func() {
 		for {
-			runSpeedTest() // Run the speed test
+			runSpeedTest(context.Background()) // Run the speed test
 
 			// Fetch the current speed test frequency from the database
 			var frequency int32
