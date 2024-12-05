@@ -19,6 +19,9 @@ RUN go mod download
 # Copy the rest of the application code
 COPY .. .
 
+# Clean up dependencies
+RUN go mod tidy
+
 # Build the Go application
 RUN go build -o botb-backend
 
