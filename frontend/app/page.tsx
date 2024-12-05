@@ -378,7 +378,7 @@ export default function Home() {
                             />
                         ) : (
                             <div className="flex items-center justify-center h-full">
-                                <p className="text-secondary">No results found</p>
+                                <p className="text-secondary text-lg">No data available for the selected date range</p>
                             </div>
                         )}
                     </div>
