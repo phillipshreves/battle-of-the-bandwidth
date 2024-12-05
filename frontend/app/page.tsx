@@ -81,8 +81,21 @@ export default function Home() {
         fetchServers();
     }, []);
 
-    let chartData: Serie[];
-    if (!data || data.length === 0) {
+    let chartData: Serie[] = [
+        {
+            id: "Download Speed (Mbps)",
+            data: []
+        } as Serie,
+        {
+            id: "Upload Speed (Mbps)",
+            data: []
+        } as Serie,
+        {
+            id: "Ping (ms)",
+            data: []
+        } as Serie,
+    ];
+    if (data && data.length > 0) {
         chartData = [
             {
                 id: "Download Speed (Mbps)",
@@ -271,20 +284,20 @@ export default function Home() {
                             ← Newer
                         </button>
                         <span className="text-secondary">
-              Showing {offset + 1} - {offset + Math.min(limit, data.length)} results
+              {data && data.length > 0 ? `Showing ${offset + 1} - ${offset + Math.min(limit, data.length)} results` : 'No results'}
             </span>
                         <button
                             className="px-4 py-2 rounded-lg bg-secondary/10 hover:bg-secondary/20
                        transition-colors duration-200 text-secondary disabled:opacity-50 disabled:cursor-not-allowed"
                             onClick={handleNextPage}
-                            disabled={data.length < limit}
+                            disabled={!data || data.length < limit}
                         >
                             Older →
                         </button>
                     </div>
 
                     <div className="h-[600px] glass-card p-6">
-                        {chartData.some(series => series.data.length > 0) ? (
+                        {chartData && chartData.some(series => series?.data?.length > 0) ? (
                             <ResponsiveLine
                                 data={chartData}
                                 margin={{top: 20, right: 180, bottom: 120, left: 100}}
