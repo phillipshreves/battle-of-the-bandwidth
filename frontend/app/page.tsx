@@ -81,45 +81,14 @@ export default function Home() {
         fetchServers();
     }, []);
 
-    let chartData: Serie[] = [
-        {
-            id: "Download Speed (Mbps)",
-            data: []
-        } as Serie,
-        {
-            id: "Upload Speed (Mbps)",
-            data: []
-        } as Serie,
-        {
-            id: "Ping (ms)",
-            data: []
-        } as Serie,
-    ];
-    if (data && data.length > 0) {
-        chartData = [
+    const chartData: Serie[] = [
             {
                 id: "Download Speed (Mbps)",
-                data: []
-            } as Serie,
-            {
-                id: "Upload Speed (Mbps)",
-                data: []
-            } as Serie,
-            {
-                id: "Ping (ms)",
-                data: []
-            } as Serie,
-        ];
-    } else {
-        console.log(`data: ${data}`)
-        console.log(`data: ${JSON.stringify(data)}`)
-        chartData = [
-            {
-                id: "Download Speed (Mbps)",
-                data: data
+                data: (data || [])
                     .filter(item =>
                         item?.timestamp &&
-                        Number.isFinite(item.download)
+                        !isNaN(item.download) &&
+                        Number.isFinite(Number(item.download))
                     )
                     .map((item) => ({
                         x: format(parseISO(item.timestamp), 'yyyy-MM-dd HH:mm:ss'),
@@ -128,7 +97,7 @@ export default function Home() {
             } as Serie,
             {
                 id: "Upload Speed (Mbps)",
-                data: data
+                data: (data || [])
                     .filter(item =>
                         item?.timestamp &&
                         !isNaN(item.upload) &&
@@ -141,7 +110,7 @@ export default function Home() {
             } as Serie,
             {
                 id: "Ping (ms)",
-                data: data
+                data: (data || [])
                     .filter(item =>
                         item?.timestamp &&
                         !isNaN(item.ping) &&
