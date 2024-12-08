@@ -7,6 +7,8 @@ import (
         "time"
 
         "github.com/phillipshreves/battle-of-the-bandwidth/backend/internal/database"
+        "github.com/phillipshreves/battle-of-the-bandwidth/backend/internal/handlers"
+        "github.com/phillipshreves/battle-of-the-bandwidth/backend/internal/routes"
 )
 
 func main() {
@@ -15,13 +17,13 @@ func main() {
         }
         defer database.CloseDB() // Ensure the database connection is closed on exit
 
-        setupRoutes() // Set up the routes
+        routes.SetupRoutes() // Set up the routes
         log.Println("Starting server on :8080")
 
         // Run the speed test in a separate goroutine
         go func() {
                 for {
-                        runSpeedTest(context.Background()) // Run the speed test
+                        handlers.RunSpeedTest(context.Background()) // Run the speed test
 
                         // Fetch the current speed test frequency from the database
                         var frequency int32
