@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/phillipshreves/battle-of-the-bandwidth/backend/internal/database"
-	"github.com/phillipshreves/battle-of-the-bandwidth/backend/internal/handlers"
 	"github.com/phillipshreves/battle-of-the-bandwidth/backend/internal/routes"
 )
 
