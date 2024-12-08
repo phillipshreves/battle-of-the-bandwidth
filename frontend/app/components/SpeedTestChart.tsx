@@ -7,7 +7,7 @@ interface SpeedTestChartProps {
 export default function SpeedTestChart({chartData}: SpeedTestChartProps) {
     return (
         <div className="h-[600px] glass-card p-6">
-            {chartData && chartData.some(series => series?.data?.length > 0) ? (
+            {chartData?.length > 0 && chartData.some(series => series?.data?.length > 0) ? (
                 <ResponsiveLine
                     data={chartData}
                     margin={{top: 20, right: 180, bottom: 120, left: 100}}
