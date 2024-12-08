@@ -7,6 +7,7 @@ import {SpeedTestData} from '@/types/types';
 import Settings from './components/Settings';
 import SpeedTestChart from './components/SpeedTestChart';
 import Filters from './components/Filters';
+import Pagination from './components/Pagination';
 
 interface FetchFilters {
     startDate?: string;
@@ -176,28 +177,13 @@ export default function Home() {
                         onToggle={() => setIsAdvancedFiltersOpen(!isAdvancedFiltersOpen)}
                     />
 
-                    {/* Data Point Pagination */}
-                    <div className="flex items-center justify-center gap-4 py-4">
-                        <button
-                            className="px-4 py-2 rounded-lg bg-secondary/10 hover:bg-secondary/20
-                       transition-colors duration-200 text-secondary disabled:opacity-50 disabled:cursor-not-allowed"
-                            onClick={handlePreviousPage}
-                            disabled={offset === 0}
-                        >
-                            ← Newer
-                        </button>
-                        <span className="text-secondary">
-              {data && data.length > 0 ? `Showing ${offset + 1} - ${offset + Math.min(limit, data.length)} results` : 'No results'}
-            </span>
-                        <button
-                            className="px-4 py-2 rounded-lg bg-secondary/10 hover:bg-secondary/20
-                       transition-colors duration-200 text-secondary disabled:opacity-50 disabled:cursor-not-allowed"
-                            onClick={handleNextPage}
-                            disabled={!data || data.length < limit}
-                        >
-                            Older →
-                        </button>
-                    </div>
+                    <Pagination
+                        offset={offset}
+                        limit={limit}
+                        dataLength={data.length}
+                        onPreviousPage={handlePreviousPage}
+                        onNextPage={handleNextPage}
+                    />
 
                     <SpeedTestChart chartData={chartData} />
                 </div>
