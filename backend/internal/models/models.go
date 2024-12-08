@@ -34,3 +34,8 @@ type UserSettings struct {
         CreatedAt          time.Time `json:"created_at"`
         UpdatedAt          time.Time `json:"updated_at"`
 }
+
+type DefaultJsonResponse struct {
+        Data  string `json:"data"`
+        Error string `json:"error"`
+}
