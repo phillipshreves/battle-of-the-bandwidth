@@ -1,4 +1,4 @@
-package main
+package database
 
 import (
         "context"
@@ -10,9 +10,9 @@ import (
         "github.com/jackc/pgx/v5/pgxpool"
 )
 
-var db *pgxpool.Pool
+var DB *pgxpool.Pool
 
-func initDB() error {
+func InitDB() error {
         dbHost := os.Getenv("DB_HOST")
         dbPort := os.Getenv("DB_PORT")
         dbUser := os.Getenv("DB_USER")
@@ -34,9 +34,9 @@ func initDB() error {
                 config.MaxConnIdleTime = 30 * time.Minute
                 config.HealthCheckPeriod = 1 * time.Minute
 
-                db, err = pgxpool.NewWithConfig(context.Background(), config)
+                DB, err = pgxpool.NewWithConfig(context.Background(), config)
                 if err == nil {
-                        if pingErr := db.Ping(context.Background()); pingErr == nil {
+                        if pingErr := DB.Ping(context.Background()); pingErr == nil {
                                 log.Println("Connected to the database.")
                                 return nil
                         } else {
@@ -49,8 +49,8 @@ func initDB() error {
         return fmt.Errorf("could not connect to database after retries: %w", err)
 }
 
-func closeDB() {
-        if db != nil {
-                db.Close()
+func CloseDB() {
+        if DB != nil {
+                DB.Close()
         }
 }
