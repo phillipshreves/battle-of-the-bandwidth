@@ -39,7 +39,7 @@ services:
       POSTGRES_DB: botb
     volumes:
       - db_data:/var/lib/postgresql/data
-      - ./backend/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+      - ./backend/internal/database/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
     restart: always
 
 volumes:

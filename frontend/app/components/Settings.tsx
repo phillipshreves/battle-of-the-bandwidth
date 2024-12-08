@@ -58,7 +58,7 @@ export default function Settings() {
             });
             if (!response.ok) throw new Error('Failed to run speed test');
             const result = await response.json();
-            setSuccess('Speed test completed successfully');
+            setSuccess('Speed test started successfully');
             console.log(result);
         } catch (err) {
             setError(`Failed to run speed test: ${err}`);

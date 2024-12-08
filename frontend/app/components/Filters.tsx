@@ -21,6 +21,9 @@ export default function Filters({
     onLimitChange,
     onToggle
 }: FiltersProps) {
+    if(!availableServers) {
+        availableServers = []
+    }
     return (
         <div className="border-t border-secondary/20 pt-4">
             <button

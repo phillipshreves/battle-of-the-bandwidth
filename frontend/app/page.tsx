@@ -84,6 +84,31 @@ export default function Home() {
         fetchServers();
     }, []);
 
+    const handleDateChange = (index: 0 | 1, value: string) => {
+        const newDateRange = [...dateRange];
+        newDateRange[index] = value || null;
+        setDateRange(newDateRange as [string | null, string | null]);
+    };
+
+    const handleServerChange = (value: string) => {
+        setServer(value || null);
+    };
+
+    const handleLimitChange = (value: string) => {
+        const newLimit = parseInt(value, 10);
+        setLimit(isNaN(newLimit) ? 10 : newLimit);
+    };
+
+    const handlePreviousPage = () => {
+        if (offset - limit >= 0) {
+            setOffset(offset - limit);
+        }
+    };
+
+    const handleNextPage = () => {
+        setOffset(offset + limit);
+    };
+
     const chartData: Serie[] = [
         {
             id: "Download Speed (Mbps)",
@@ -126,34 +151,8 @@ export default function Home() {
         } as Serie
     ];
 
-    const handleDateChange = (index: 0 | 1, value: string) => {
-        const newDateRange = [...dateRange];
-        newDateRange[index] = value || null;
-        setDateRange(newDateRange as [string | null, string | null]);
-    };
-
-    const handleServerChange = (value: string) => {
-        setServer(value || null);
-    };
-
-    const handleLimitChange = (value: string) => {
-        const newLimit = parseInt(value, 10);
-        setLimit(isNaN(newLimit) ? 10 : newLimit);
-    };
-
-    const handlePreviousPage = () => {
-        if (offset - limit >= 0) {
-            setOffset(offset - limit);
-        }
-    };
-
-    const handleNextPage = () => {
-        setOffset(offset + limit);
-    };
-
     return (
         <main className="min-h-screen p-8">
-            {/* Background gradient */}
             <div className="gradient-bg fixed inset-0 -z-10"/>
 
             <div className="max-w-7xl mx-auto space-y-8">
@@ -161,7 +160,6 @@ export default function Home() {
                     <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                         Network Performance Monitor
                     </h1>
-                    <p className="text-secondary">Monitor your network speeds over time</p>
                 </header>
 
                 <div className="glass-card p-6 space-y-6">
@@ -180,7 +178,7 @@ export default function Home() {
                     <Pagination
                         offset={offset}
                         limit={limit}
-                        dataLength={data.length}
+                        dataLength={data?.length || 0}
                         onPreviousPage={handlePreviousPage}
                         onNextPage={handleNextPage}
                     />
@@ -189,7 +187,6 @@ export default function Home() {
                 </div>
             </div>
 
-            {/* Add Settings component */}
             <Settings />
         </main>
     );
