@@ -22,16 +22,71 @@ type DefaultJsonResponse struct {
 func SpeedTestHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		getSpeedtests(w, r)
+		getSpeedTests(w, r)
 	case http.MethodPost:
-		runSpeedTestHandler(w, r)
+		startSpeedTest(w, r)
 	default:
 		errorDetails := fmt.Sprintf("Method not allowed: %v", r.Method)
 		http.Error(w, errorDetails, http.StatusMethodNotAllowed)
 	}
 }
 
-func getSpeedtests(w http.ResponseWriter, r *http.Request) {
+func ServerNamesHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		getServerNames(w, r)
+	}
+}
+
+func SettingsHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		getSettings(w, r)
+	case http.MethodPatch:
+		updateSettings(w, r)
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+func getServerNames(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	query := `
+        SELECT DISTINCT server_name 
+        FROM speedtest_results 
+        WHERE server_name IS NOT NULL AND server_name != '' 
+        ORDER BY server_name
+    `
+
+	rows, err := database.DB.Query(ctx, query)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to fetch server names: %v", err), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var serverNames []string
+	for rows.Next() {
+		var name string
+		if err := rows.Scan(&name); err != nil {
+			http.Error(w, fmt.Sprintf("Failed to scan row: %v", err), http.StatusInternalServerError)
+			return
+		}
+		serverNames = append(serverNames, name)
+	}
+
+	if err := rows.Err(); err != nil {
+		http.Error(w, fmt.Sprintf("Error reading rows: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(serverNames); err != nil {
+		http.Error(w, "Failed to encode results to JSON", http.StatusInternalServerError)
+	}
+}
+
+func getSpeedTests(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// Parse query parameters
@@ -69,43 +124,6 @@ func getSpeedtests(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func GetServerNamesHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	query := `
-        SELECT DISTINCT server_name 
-        FROM speedtest_results 
-        WHERE server_name IS NOT NULL AND server_name != '' 
-        ORDER BY server_name
-    `
-
-	rows, err := database.DB.Query(ctx, query)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to fetch server names: %v", err), http.StatusInternalServerError)
-		return
-	}
-	defer rows.Close()
-
-	var serverNames []string
-	for rows.Next() {
-		var name string
-		if err := rows.Scan(&name); err != nil {
-			http.Error(w, fmt.Sprintf("Failed to scan row: %v", err), http.StatusInternalServerError)
-			return
-		}
-		serverNames = append(serverNames, name)
-	}
-
-	if err := rows.Err(); err != nil {
-		http.Error(w, fmt.Sprintf("Error reading rows: %v", err), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(serverNames); err != nil {
-		http.Error(w, "Failed to encode results to JSON", http.StatusInternalServerError)
-	}
-}
-
 func storeResult(ctx context.Context, result models.SpeedTestResult) error {
 	errCount := 0
 	errCountMax := 10
@@ -139,17 +157,29 @@ func RunSpeedTest(ctx context.Context) {
 	cmd := exec.CommandContext(ctx, "librespeed-cli", "--json")
 	output, err := cmd.Output()
 	if err != nil {
-		log.Printf("Error running speedtest: %v", err)
+		if ctx.Err() == context.Canceled {
+			log.Printf("Speed test was canceled: context deadline exceeded or request canceled")
+			return
+		}
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			log.Printf("Speed test failed with stderr: %s", string(exitErr.Stderr))
+		} else {
+			log.Printf("Error running speedtest: %v", err)
+		}
 		return
 	}
 
 	var results []models.SpeedTestResult
 	if err := json.Unmarshal(output, &results); err != nil {
-		log.Printf("Error parsing JSON: %v", err)
+		log.Printf("Error parsing JSON: %v\nOutput: %s", err, string(output))
 		return
 	}
 
 	for _, result := range results {
+		if ctx.Err() != nil {
+			log.Printf("Context canceled while storing results")
+			return
+		}
 		if err := storeResult(ctx, result); err != nil {
 			log.Printf("Error storing result: %v", err)
 		}
@@ -208,17 +238,6 @@ func fetchFilteredResults(ctx context.Context, startDate, endDate string, server
 	return results, nil
 }
 
-func HandleSettings(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		getSettings(w, r)
-	case http.MethodPatch:
-		updateSettings(w, r)
-	default:
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-	}
-}
-
 func getSettings(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	query := `SELECT id, speedtest_frequency, created_at, updated_at FROM user_settings LIMIT 1`
@@ -262,13 +281,8 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func runSpeedTestHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	// Create a new context with timeout for the speed test
-	testCtx, cancel := context.WithTimeout(ctx, 5*time.Minute)
-	defer cancel()
-
-	go RunSpeedTest(testCtx) // Run the speed test in a goroutine with context
+func startSpeedTest(w http.ResponseWriter, r *http.Request) {
+	go RunSpeedTest(context.Background())
 
 	w.Header().Set("Content-Type", "application/json")
 	response := DefaultJsonResponse{
