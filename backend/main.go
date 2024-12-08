@@ -6,7 +6,7 @@ import (
         "net/http"
         "time"
 
-        "battle-of-the-bandwidth/backend/internal/database"
+        "github.com/phillipshreves/battle-of-the-bandwidth/backend/internal/database"
 )
 
 func main() {

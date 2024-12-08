@@ -10,7 +10,7 @@ import (
         "strconv"
         "time"
 
-        "battle-of-the-bandwidth/backend/internal/database"
+        "github.com/phillipshreves/battle-of-the-bandwidth/backend/internal/database"
 )
 
 type defaultJsonResponse struct {
