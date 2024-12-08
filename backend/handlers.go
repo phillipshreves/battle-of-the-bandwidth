@@ -9,6 +9,8 @@ import (
         "os/exec"
         "strconv"
         "time"
+
+        "battle-of-the-bandwidth/backend/internal/database"
 )
 
 type defaultJsonResponse struct {
@@ -75,7 +77,7 @@ func getServerNamesHandler(w http.ResponseWriter, r *http.Request) {
         ORDER BY server_name
     `
 
-        rows, err := db.Query(ctx, query)
+        rows, err := database.DB.Query(ctx, query)
         if err != nil {
                 http.Error(w, fmt.Sprintf("Failed to fetch server names: %v", err), http.StatusInternalServerError)
                 return
@@ -109,7 +111,7 @@ func storeResult(ctx context.Context, result SpeedTestResult) error {
         var err error
 
         for errCount < errCountMax {
-                _, err = db.Exec(ctx, `
+                _, err = database.DB.Exec(ctx, `
         INSERT INTO speedtest_results (
             timestamp, server_name, server_url, 
             client_ip, client_hostname, client_city, client_region, client_country, client_loc, client_org, client_postal, client_timezone,
@@ -174,7 +176,7 @@ func fetchFilteredResults(ctx context.Context, startDate, endDate string, server
         LIMIT $4 OFFSET $5
     `
 
-        rows, err := db.Query(ctx, query, startDate, endDate, serverName, limit, offset)
+        rows, err := database.DB.Query(ctx, query, startDate, endDate, serverName, limit, offset)
         if err != nil {
                 return nil, fmt.Errorf("failed to fetch results: %w", err)
         }
@@ -219,7 +221,7 @@ func handleSettings(w http.ResponseWriter, r *http.Request) {
 func getSettings(w http.ResponseWriter, r *http.Request) {
         ctx := r.Context()
         query := `SELECT id, speedtest_frequency, created_at, updated_at FROM user_settings LIMIT 1`
-        row := db.QueryRow(ctx, query)
+        row := database.DB.QueryRow(ctx, query)
 
         var settings UserSettings
         if err := row.Scan(&settings.ID, &settings.SpeedtestFrequency, &settings.CreatedAt, &settings.UpdatedAt); err != nil {
@@ -242,7 +244,7 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
         }
 
         query := `UPDATE user_settings SET speedtest_frequency = $1, updated_at = CURRENT_TIMESTAMP`
-        if _, err := db.Exec(ctx, query, settings.SpeedtestFrequency); err != nil {
+        if _, err := database.DB.Exec(ctx, query, settings.SpeedtestFrequency); err != nil {
                 log.Printf("Failed to update settings: %v", err)
                 http.Error(w, fmt.Sprintf("Failed to update settings: %v", err), http.StatusInternalServerError)
                 return
