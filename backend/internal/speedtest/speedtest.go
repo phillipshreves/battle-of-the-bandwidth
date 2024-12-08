@@ -14,10 +14,7 @@ import (
         "github.com/phillipshreves/battle-of-the-bandwidth/backend/internal/models"
 )
 
-type DefaultJsonResponse struct {
-        Data  string `json:"data"`
-        Error string `json:"error"`
-}
+
 
 func SpeedTestHandler(w http.ResponseWriter, r *http.Request) {
         switch r.Method {
@@ -184,7 +181,7 @@ func startSpeedTest(w http.ResponseWriter, r *http.Request) {
         go RunSpeedTest(context.Background())
 
         w.Header().Set("Content-Type", "application/json")
-        response := DefaultJsonResponse{
+        response := models.DefaultJsonResponse{
                 Data:  "{}",
                 Error: "{}",
         }

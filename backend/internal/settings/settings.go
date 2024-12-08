@@ -10,10 +10,7 @@ import (
         "github.com/phillipshreves/battle-of-the-bandwidth/backend/internal/models"
 )
 
-type DefaultJsonResponse struct {
-        Data  string `json:"data"`
-        Error string `json:"error"`
-}
+
 
 func SettingsHandler(w http.ResponseWriter, r *http.Request) {
         switch r.Method {
@@ -59,7 +56,7 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
         }
 
         w.Header().Set("Content-Type", "application/json")
-        response := DefaultJsonResponse{
+        response := models.DefaultJsonResponse{
                 Data:  "{}",
                 Error: "{}",
         }
