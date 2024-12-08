@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
         "context"
@@ -11,14 +11,15 @@ import (
         "time"
 
         "github.com/phillipshreves/battle-of-the-bandwidth/backend/internal/database"
+        "github.com/phillipshreves/battle-of-the-bandwidth/backend/internal/models"
 )
 
-type defaultJsonResponse struct {
+type DefaultJsonResponse struct {
         Data  string `json:"data"`
         Error string `json:"error"`
 }
 
-func speedTestHandler(w http.ResponseWriter, r *http.Request) {
+func SpeedTestHandler(w http.ResponseWriter, r *http.Request) {
         switch r.Method {
         case http.MethodGet:
                 getSpeedtests(w, r)
@@ -68,7 +69,7 @@ func getSpeedtests(w http.ResponseWriter, r *http.Request) {
         }
 }
 
-func getServerNamesHandler(w http.ResponseWriter, r *http.Request) {
+func GetServerNamesHandler(w http.ResponseWriter, r *http.Request) {
         ctx := r.Context()
         query := `
         SELECT DISTINCT server_name 
@@ -105,7 +106,7 @@ func getServerNamesHandler(w http.ResponseWriter, r *http.Request) {
         }
 }
 
-func storeResult(ctx context.Context, result SpeedTestResult) error {
+func storeResult(ctx context.Context, result models.SpeedTestResult) error {
         errCount := 0
         errCountMax := 10
         var err error
@@ -134,7 +135,7 @@ func storeResult(ctx context.Context, result SpeedTestResult) error {
         return fmt.Errorf("failed to store speed test result: %w", err)
 }
 
-func runSpeedTest(ctx context.Context) {
+func RunSpeedTest(ctx context.Context) {
         cmd := exec.CommandContext(ctx, "librespeed-cli", "--json")
         output, err := cmd.Output()
         if err != nil {
@@ -142,7 +143,7 @@ func runSpeedTest(ctx context.Context) {
                 return
         }
 
-        var results []SpeedTestResult
+        var results []models.SpeedTestResult
         if err := json.Unmarshal(output, &results); err != nil {
                 log.Printf("Error parsing JSON: %v", err)
                 return
@@ -155,7 +156,7 @@ func runSpeedTest(ctx context.Context) {
         }
 }
 
-func fetchFilteredResults(ctx context.Context, startDate, endDate string, serverName string, limit, offset int) ([]SpeedTestResult, error) {
+func fetchFilteredResults(ctx context.Context, startDate, endDate string, serverName string, limit, offset int) ([]models.SpeedTestResult, error) {
         if startDate == "" {
                 startDate = "1900-01-01T00:00:00.000-00"
         }
@@ -182,9 +183,9 @@ func fetchFilteredResults(ctx context.Context, startDate, endDate string, server
         }
         defer rows.Close()
 
-        var results []SpeedTestResult
+        var results []models.SpeedTestResult
         for rows.Next() {
-                var result SpeedTestResult
+                var result models.SpeedTestResult
                 var timestamp time.Time
 
                 if err := rows.Scan(
@@ -207,7 +208,7 @@ func fetchFilteredResults(ctx context.Context, startDate, endDate string, server
         return results, nil
 }
 
-func handleSettings(w http.ResponseWriter, r *http.Request) {
+func HandleSettings(w http.ResponseWriter, r *http.Request) {
         switch r.Method {
         case http.MethodGet:
                 getSettings(w, r)
@@ -223,7 +224,7 @@ func getSettings(w http.ResponseWriter, r *http.Request) {
         query := `SELECT id, speedtest_frequency, created_at, updated_at FROM user_settings LIMIT 1`
         row := database.DB.QueryRow(ctx, query)
 
-        var settings UserSettings
+        var settings models.UserSettings
         if err := row.Scan(&settings.ID, &settings.SpeedtestFrequency, &settings.CreatedAt, &settings.UpdatedAt); err != nil {
                 http.Error(w, fmt.Sprintf("Failed to retrieve settings: %v", err), http.StatusInternalServerError)
                 return
@@ -237,7 +238,7 @@ func getSettings(w http.ResponseWriter, r *http.Request) {
 
 func updateSettings(w http.ResponseWriter, r *http.Request) {
         ctx := r.Context()
-        var settings UserSettings
+        var settings models.UserSettings
         if err := json.NewDecoder(r.Body).Decode(&settings); err != nil {
                 http.Error(w, "Invalid request payload", http.StatusBadRequest)
                 return
