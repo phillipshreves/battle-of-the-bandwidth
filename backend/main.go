@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/phillipshreves/battle-of-the-bandwidth/backend/internal/speedtest"
 	"log"
 	"net/http"
 	"time"
@@ -31,7 +32,7 @@ func main() {
 		}
 
 		for {
-			handlers.RunSpeedTest(context.Background())
+			speedtest.RunSpeedTest(context.Background())
 
 			log.Printf("Waiting for %d minutes before the next speed test...", frequency)
 			time.Sleep(time.Duration(frequency) * time.Minute) // Wait for the specified frequency before the next test
