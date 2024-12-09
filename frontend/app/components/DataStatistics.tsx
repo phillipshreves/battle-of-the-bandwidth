@@ -13,9 +13,9 @@ export default function DataStatistics({ chartData }: DataStatisticsProps) {
         return (sum / series.data.length).toFixed(2);
     };
 
-    const uploadAvg = calculateAverage(chartData, 'Upload');
-    const downloadAvg = calculateAverage(chartData, 'Download');
-    const pingAvg = calculateAverage(chartData, 'Ping');
+    const uploadAvg = calculateAverage(chartData, 'Upload Speed (Mbps)');
+    const downloadAvg = calculateAverage(chartData, 'Download Speed (Mbps)');
+    const pingAvg = calculateAverage(chartData, 'Ping (ms)');
 
     return (
         <div className="glass-card p-6 grid grid-cols-3 gap-4">
