@@ -12,7 +12,7 @@ The application runs a speed test on a  set interval(60 minute default) and stor
 
 ### Showcase
 
-![showcase-screenshot.png](showcase-screenshot.png)
+![showcase-screenshot-01.png](showcase-screenshot-01.png)
 
 ### Project Structure
 
