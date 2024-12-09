@@ -8,6 +8,7 @@ import Settings from './components/Settings';
 import SpeedTestChart from './components/SpeedTestChart';
 import Filters from './components/Filters';
 import Pagination from './components/Pagination';
+import DataStatistics from './components/DataStatistics';
 
 interface FetchFilters {
     startDate?: string;
@@ -168,6 +169,7 @@ export default function Home() {
                         onNextPage={handleNextPage}
                     />
 
+                    <DataStatistics chartData={chartData} />
                     <SpeedTestChart chartData={chartData} />
                 </div>
             </div>
