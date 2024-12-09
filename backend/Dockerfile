@@ -23,7 +23,7 @@ COPY .. .
 RUN go mod tidy
 
 # Build the Go application
-RUN go build ./cmd/main.go -o botb-backend
+RUN go build -o botb-backend ./cmd
 
 # Expose the app's port
 EXPOSE 8080
