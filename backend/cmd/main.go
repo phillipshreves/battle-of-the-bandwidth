@@ -30,7 +30,7 @@ func main() {
 			if err := row.Scan(&frequency); err != nil {
 				log.Printf("Failed to retrieve speed test frequency: %v", err)
 				// Default to 1 minute if there's an error
-				time.Sleep(1 * time.Minute)
+				frequency = 1
 			}
 			log.Printf("Waiting for %d minutes before the next speed test...", frequency)
 			time.Sleep(time.Duration(frequency) * time.Minute) // Wait for the specified frequency before the next test
