@@ -39,7 +39,7 @@ docker compose up
 
 You can visit http://localhost:40080/ to view the web application. You will not have any starting data, so do not be alarmed by the empty chart. The application performs a single speed test on startup, but you can also run one manually via settings at the bottom of the page.
 
-You can set the time between tests in the settings as well, the default is every 60 minutes.
+You can set the time between tests in the settings as well, the default is 1 day.
 
 Filters are available above the chart to allow for a more precise data view.
 
