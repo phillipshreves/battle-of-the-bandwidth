@@ -29,8 +29,8 @@ func main() {
 			row := database.DB.QueryRow(context.Background(), query)
 			if err := row.Scan(&frequency); err != nil {
 				log.Printf("Failed to retrieve speed test frequency: %v", err)
-				// Default to 1 minute if there's an error
-				frequency = 1
+				// Default to 1 day if there's an error
+				frequency = 1440
 			}
 			log.Printf("Waiting for %d minutes before the next speed test...", frequency)
 			time.Sleep(time.Duration(frequency) * time.Minute) // Wait for the specified frequency before the next test
