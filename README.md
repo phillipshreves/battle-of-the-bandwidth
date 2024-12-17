@@ -2,7 +2,7 @@
 
 A modern web application for tracking and monitoring maximum network bandwidth. 
 
-The application runs a speed test on a  set interval(60 minute default) and stores the result. The results are then display on a filtered chart, to provide an quick overview of network performance.
+The application runs a speed test on a set interval and stores the result. The results are then display on a filtered chart, to provide an quick overview of network performance.
 
  Built with:
 - React web interface
