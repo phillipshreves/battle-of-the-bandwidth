@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS speedtest_results
 CREATE TABLE IF NOT EXISTS user_settings
 (
     id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    speedtest_frequency INTEGER NOT NULL DEFAULT 60, -- Frequency in minutes
+    speedtest_frequency INTEGER NOT NULL DEFAULT 1440, -- Frequency in minutes, default is 1 day
     created_at          TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
