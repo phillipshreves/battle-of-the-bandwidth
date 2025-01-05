@@ -33,9 +33,18 @@ CREATE TABLE IF NOT EXISTS user_settings
     updated_at          TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS database_metadata
+(
+    version              BIGINT
+);
+
 -- Insert default settings
 INSERT INTO user_settings (speedtest_frequency, updated_at)
 VALUES (60, CURRENT_TIMESTAMP)
+ON CONFLICT DO NOTHING;
+
+INSERT INTO database_metadata (version)
+VALUES (1)
 ON CONFLICT DO NOTHING;
 
 -- Add trigger to update updated_at timestamp
