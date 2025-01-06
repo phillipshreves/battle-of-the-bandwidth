@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strconv"
@@ -38,7 +39,7 @@ func getCurrentVersion(ctx context.Context) (int, error) {
 }
 
 func loadMigrations() ([]migration, error) {
-	entries, err := fs.ReadDir(migrationsDir, ".")
+	entries, err := fs.ReadDir(migrationsDir, "migrations")
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, ErrNoMigrationsDir
@@ -64,7 +65,7 @@ func loadMigrations() ([]migration, error) {
 			return nil, fmt.Errorf("%w: invalid version number in %s", ErrInvalidMigration, name)
 		}
 
-		content, err := fs.ReadFile(migrationsDir, name)
+		content, err := fs.ReadFile(migrationsDir, filepath.Join("migrations", name))
 		if err != nil {
 			return nil, fmt.Errorf("%w: unable to read file ", name)
 		}
@@ -144,21 +145,20 @@ func MigrateDB() error {
 	if err != nil {
 		return err
 	}
-	fmt.Println("Schema version:", currentVersion)
+	fmt.Println("Current schema version:", currentVersion)
 
 	migrations, err := loadMigrations()
 	if err != nil {
 		return err
 	}
-	fmt.Println("Migrations:", migrations)
 
 	if err := validateMigrations(migrations); err != nil {
 		return err
 	}
-	fmt.Println("Migrations validated")
 
+	newVersion := currentVersion
 	for _, m := range migrations {
-		if m.version <= currentVersion {
+		if m.version < currentVersion {
 			continue
 		}
 
@@ -167,6 +167,12 @@ func MigrateDB() error {
 		}
 
 		fmt.Printf("Successfully applied migration %s (version %d)\n", m.name, m.version)
+		newVersion = m.version
+	}
+
+	if newVersion != currentVersion {
+		newVersion, _ := getCurrentVersion(ctx)
+		fmt.Println("New schema version:", newVersion)
 	}
 
 	return nil

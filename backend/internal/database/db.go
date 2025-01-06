@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -13,11 +12,16 @@ import (
 var DB *pgxpool.Pool
 
 func InitDB() error {
-	dbHost := os.Getenv("DB_HOST")
-	dbPort := os.Getenv("DB_PORT")
-	dbUser := os.Getenv("DB_USER")
-	dbPassword := os.Getenv("DB_PASSWORD")
-	dbName := os.Getenv("DB_NAME")
+	//dbHost := os.Getenv("DB_HOST")
+	//dbPort := os.Getenv("DB_PORT")
+	//dbUser := os.Getenv("DB_USER")
+	//dbPassword := os.Getenv("DB_PASSWORD")
+	//dbName := os.Getenv("DB_NAME")
+	dbHost := "127.0.0.1"
+	dbPort := "5432"
+	dbUser := "postgres"
+	dbPassword := "postgres"
+	dbName := "botb"
 
 	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?pool_max_conns=10",
 		dbUser, dbPassword, dbHost, dbPort, dbName)
