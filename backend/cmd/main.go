@@ -15,6 +15,9 @@ func main() {
 	if err := database.InitDB(); err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
+	if err := database.MigrateDB(); err != nil {
+		log.Fatalf("Failed to migrate database: %v", err)
+	}
 	defer database.CloseDB() // Ensure the database connection is closed on exit
 
 	routes.SetupRoutes() // Set up the routes
