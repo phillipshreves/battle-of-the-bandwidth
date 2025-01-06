@@ -127,7 +127,7 @@ func executeMigration(ctx context.Context, m migration) error {
 	if _, err = tx.Exec(ctx, `
 		UPDATE database_metadata 
 		SET version = $1
-	`, m.version); err != nil {
+	`, m.version+1); err != nil {
 		return fmt.Errorf("failed to update database version: %w", err)
 	}
 
@@ -156,7 +156,7 @@ func MigrateDB() error {
 		return err
 	}
 
-	newVersion := currentVersion
+	migrationApplied := false
 	for _, m := range migrations {
 		if m.version < currentVersion {
 			continue
@@ -167,10 +167,10 @@ func MigrateDB() error {
 		}
 
 		fmt.Printf("Successfully applied migration %s (version %d)\n", m.name, m.version)
-		newVersion = m.version
+		migrationApplied = true
 	}
 
-	if newVersion != currentVersion {
+	if migrationApplied {
 		newVersion, _ := getCurrentVersion(ctx)
 		fmt.Println("New schema version:", newVersion)
 	}
