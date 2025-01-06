@@ -2,46 +2,31 @@ package database
 
 import (
 	"context"
+	"embed"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
-	"path/filepath"
 	"regexp"
 	"sort"
 	"strconv"
-	"time"
 )
 
 type migration struct {
 	version int
-	path    string
 	name    string
+	content string
 }
 
 var (
-	ErrNoMigrationsDir    = errors.New("migrations directory not found")
-	ErrInvalidMigration   = errors.New("invalid migration file")
-	ErrMigrationFailed    = errors.New("migration failed")
-	migrationFilePattern  = regexp.MustCompile(`^(\d+).*\.sql$`)
-	createVersionTableSQL = `
-		CREATE TABLE IF NOT EXISTS database_metadata (
-			version INTEGER NOT NULL DEFAULT 0,
-			last_migration_at TIMESTAMP WITH TIME ZONE,
-			CONSTRAINT database_metadata_single_row CHECK (version >= 0)
-		);
-		INSERT INTO database_metadata (version)
-		SELECT 0
-		WHERE NOT EXISTS (SELECT 1 FROM database_metadata);
-	`
+	ErrNoMigrationsDir   = errors.New("migrations directory not found")
+	ErrInvalidMigration  = errors.New("invalid migration file")
+	ErrMigrationFailed   = errors.New("migration failed")
+	migrationFilePattern = regexp.MustCompile(`^(\d+).*\.sql$`)
 )
 
-func ensureVersionTable(ctx context.Context) error {
-	_, err := DB.Exec(ctx, createVersionTableSQL)
-	if err != nil {
-		return fmt.Errorf("failed to create version table: %w", err)
-	}
-	return nil
-}
+//go:embed migrations
+var migrationsDir embed.FS
 
 func getCurrentVersion(ctx context.Context) (int, error) {
 	var version int
@@ -52,8 +37,8 @@ func getCurrentVersion(ctx context.Context) (int, error) {
 	return version, nil
 }
 
-func loadMigrations(migrationsPath string) ([]migration, error) {
-	entries, err := os.ReadDir(migrationsPath)
+func loadMigrations() ([]migration, error) {
+	entries, err := fs.ReadDir(migrationsDir, ".")
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, ErrNoMigrationsDir
@@ -72,15 +57,22 @@ func loadMigrations(migrationsPath string) ([]migration, error) {
 			continue
 		}
 
+		name := entry.Name()
+
 		version, err := strconv.Atoi(matches[1])
 		if err != nil {
-			return nil, fmt.Errorf("%w: invalid version number in %s", ErrInvalidMigration, entry.Name())
+			return nil, fmt.Errorf("%w: invalid version number in %s", ErrInvalidMigration, name)
+		}
+
+		content, err := fs.ReadFile(migrationsDir, name)
+		if err != nil {
+			return nil, fmt.Errorf("%w: unable to read file ", name)
 		}
 
 		migrations = append(migrations, migration{
 			version: version,
-			path:    filepath.Join(migrationsPath, entry.Name()),
-			name:    entry.Name(),
+			name:    name,
+			content: string(content),
 		})
 	}
 
@@ -121,25 +113,20 @@ func validateMigrations(migrations []migration) error {
 }
 
 func executeMigration(ctx context.Context, m migration) error {
-	sqlContent, err := os.ReadFile(m.path)
-	if err != nil {
-		return fmt.Errorf("failed to read migration file %s: %w", m.name, err)
-	}
-
 	tx, err := DB.Begin(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 	defer tx.Rollback(ctx)
 
-	if _, err = tx.Exec(ctx, string(sqlContent)); err != nil {
+	if _, err = tx.Exec(ctx, m.content); err != nil {
 		return fmt.Errorf("%w: %v", ErrMigrationFailed, err)
 	}
 
 	if _, err = tx.Exec(ctx, `
 		UPDATE database_metadata 
-		SET version = $1, last_migration_at = $2
-	`, m.version, time.Now().UTC()); err != nil {
+		SET version = $1
+	`, m.version); err != nil {
 		return fmt.Errorf("failed to update database version: %w", err)
 	}
 
@@ -153,23 +140,22 @@ func executeMigration(ctx context.Context, m migration) error {
 func MigrateDB() error {
 	ctx := context.Background()
 
-	if err := ensureVersionTable(ctx); err != nil {
-		return err
-	}
-
 	currentVersion, err := getCurrentVersion(ctx)
 	if err != nil {
 		return err
 	}
+	fmt.Println("Schema version:", currentVersion)
 
-	migrations, err := loadMigrations("migrations")
+	migrations, err := loadMigrations()
 	if err != nil {
 		return err
 	}
+	fmt.Println("Migrations:", migrations)
 
 	if err := validateMigrations(migrations); err != nil {
 		return err
 	}
+	fmt.Println("Migrations validated")
 
 	for _, m := range migrations {
 		if m.version <= currentVersion {

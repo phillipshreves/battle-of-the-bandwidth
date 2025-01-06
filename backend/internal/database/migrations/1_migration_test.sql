@@ -1,3 +1,1 @@
-UPDATE database_metadata
-SET version = 2
-WHERE version = 1;
+SELECT * FROM database_metadata

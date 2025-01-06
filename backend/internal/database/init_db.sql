@@ -35,7 +35,8 @@ CREATE TABLE IF NOT EXISTS user_settings
 
 CREATE TABLE IF NOT EXISTS database_metadata
 (
-    version              BIGINT
+    id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    version             BIGINT
 );
 
 -- Insert default settings
