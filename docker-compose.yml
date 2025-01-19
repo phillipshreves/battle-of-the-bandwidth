@@ -9,8 +9,10 @@ services:
     ports:
       - "40080:3000"
     depends_on:
-      - botb-backend
-      - botb-db
+      botb-backend:
+        condition: service_started
+      botb-db:
+        condition: service_healthy
     restart: always
 
   botb-backend:
@@ -25,7 +27,8 @@ services:
       - DB_PASSWORD=postgres
       - DB_NAME=botb
     depends_on:
-      - botb-db
+      botb-db:
+        condition: service_healthy
     restart: always
 
   botb-db:
@@ -35,10 +38,18 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: botb
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d botb -U postgres" ]
+      interval: 2s
+      retries: 5
+      start_period: 5s
+      timeout: 2s
     volumes:
       - db_data:/var/lib/postgresql/data
       - ./backend/internal/database/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
     restart: always
+    ports:
+      - 5432:5432
 
 volumes:
   db_data:
