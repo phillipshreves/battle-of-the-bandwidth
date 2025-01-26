@@ -17,7 +17,7 @@ services:
 
   botb-backend:
     build:
-      context: ./backend
+      context: ./backend-node
       dockerfile: Dockerfile
     container_name: botb-backend
     environment:
@@ -30,6 +30,20 @@ services:
       botb-db:
         condition: service_healthy
     restart: always
+
+  botb-backend-node:
+    container_name: botb-backend-node
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    environment:
+      - NODE_ENV=production
+    working_dir: /app/src
+    command: npm run start
+    depends_on:
+      botb-db:
+        condition: service_healthy
 
   botb-db:
     image: postgres:13
