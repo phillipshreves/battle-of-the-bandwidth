@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { LoggerService } from 'src/logger/logger.service';
 
 export interface CreateError {
   code: number;
@@ -16,13 +15,8 @@ export interface GenericResult<T> {
 
 @Injectable()
 export class ErrorHandlingService {
-  constructor(private loggerService: LoggerService) {}
-
   stackError(errorOptions: CreateError) {
     errorOptions.stacktrace = errorOptions.stacktrace || new Error().stack;
-
-    this.loggerService.logger.error(errorOptions);
-    this.loggerService.simpleLogger.error(errorOptions.stacktrace);
     return errorOptions;
   }
 

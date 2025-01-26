@@ -54,4 +54,4 @@ Contributions are welcome! Please feel free to submit a pull request.
 
 ## Acknowledgements
 
-This application utilizes the [LibreSpeed](https://librespeed.org/) project to perform speed tests. Please visit their sponsors to support the project.
+This application utilizes [CloudFlare](https://github.com/cloudflare/speedtest?tab=readme-ov-file) and the [LibreSpeed](https://librespeed.org/) project to perform speed tests. Please visit their sponsors to support the project.

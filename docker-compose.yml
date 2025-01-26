@@ -17,7 +17,7 @@ services:
 
   botb-backend:
     build:
-      context: ./backend-node
+      context: ./backend
       dockerfile: Dockerfile
     container_name: botb-backend
     environment:
@@ -34,13 +34,12 @@ services:
   botb-backend-node:
     container_name: botb-backend-node
     build:
-      context: .
+      context: ./backend-node
       dockerfile: Dockerfile
       target: production
     environment:
       - NODE_ENV=production
     working_dir: /app/src
-    command: npm run start
     depends_on:
       botb-db:
         condition: service_healthy
