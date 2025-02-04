@@ -66,16 +66,25 @@ func storeResult(ctx context.Context, result models.SpeedTestResult, rawResult s
 	errCountMax := 10
 	var err error
 
+	// Get the librespeed provider ID
+	var providerID string
+	err = database.DB.QueryRow(ctx, "SELECT id FROM providers WHERE name = 'librespeed'").Scan(&providerID)
+	if err != nil {
+		return fmt.Errorf("failed to get librespeed provider ID: %w", err)
+	}
+
 	for errCount < errCountMax {
 		_, err = database.DB.Exec(ctx, `
         INSERT INTO speedtest_results (
             raw_result, timestamp, server_name, server_url, 
             client_ip, client_hostname, client_city, client_region, client_country, client_loc, client_org, client_postal, client_timezone,
-            bytes_sent, bytes_received, ping, jitter, upload, download, share
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)`,
+            bytes_sent, bytes_received, ping, jitter, upload, download, share,
+            provider_id, provider_name
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)`,
 			rawResult, result.Timestamp, result.Server.Name, result.Server.URL,
 			result.Client.IP, result.Client.Hostname, result.Client.City, result.Client.Region, result.Client.Country, result.Client.Loc, result.Client.Org, result.Client.Postal, result.Client.Timezone,
 			result.BytesSent, result.BytesReceived, result.Ping, result.Jitter, result.Upload, result.Download, result.Share,
+			providerID, "librespeed",
 		)
 
 		if err == nil {
@@ -135,7 +144,8 @@ func fetchFilteredResults(ctx context.Context, startDate, endDate string, server
             timestamp, server_name, server_url, client_ip, client_hostname,
             client_city, client_region, client_country, client_loc, client_org,
             client_postal, client_timezone, bytes_sent, bytes_received, 
-            ping, jitter, upload, download, share
+            ping, jitter, upload, download, share,
+            provider_id, provider_name
         FROM speedtest_results
         WHERE ($1::timestamptz IS NULL OR timestamp >= $1)
         AND ($2::timestamptz IS NULL OR timestamp <= $2)
@@ -160,6 +170,7 @@ func fetchFilteredResults(ctx context.Context, startDate, endDate string, server
 			&result.Client.City, &result.Client.Region, &result.Client.Country, &result.Client.Loc, &result.Client.Org,
 			&result.Client.Postal, &result.Client.Timezone, &result.BytesSent, &result.BytesReceived,
 			&result.Ping, &result.Jitter, &result.Upload, &result.Download, &result.Share,
+			&result.ProviderID, &result.ProviderName,
 		); err != nil {
 			return nil, fmt.Errorf("failed to scan row: %w", err)
 		}

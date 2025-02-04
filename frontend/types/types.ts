@@ -34,3 +34,14 @@ export interface UserSettings {
     created_at: string;
     updated_at: string;
 }
+
+export interface Schedule {
+    id: string;
+    name: string;
+    cron_expression: string;
+    provider_id: string;
+    provider_name: string;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+}

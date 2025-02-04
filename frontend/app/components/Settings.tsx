@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { UserSettings } from '@/types/types';
+import SchedulesTable from './SchedulesTable';
 
 export default function Settings() {
     const [settings, setSettings] = useState<UserSettings | null>(null);
@@ -65,7 +66,7 @@ export default function Settings() {
     };
 
     return (
-        <div className="p-6 bg-slate-800 rounded-lg shadow-lg max-w-md mx-auto mt-8">
+        <div className="p-6 bg-slate-800 rounded-lg shadow-lg max-w-4xl mx-auto mt-8">
             <h2 className="text-2xl font-bold mb-6">Settings</h2>
             
             {error && (
@@ -98,10 +99,10 @@ export default function Settings() {
                                 type="number"
                                 min="1"
                                 value={frequency}
-                                onChange={(e) => setFrequency(Number(e.target.value))}
+                                onChange={(e) => setFrequency(parseInt(e.target.value))}
                                 className="w-full p-2 bg-slate-700 rounded border border-slate-600 focus:border-primary focus:ring-1 focus:ring-primary"
                             />
-                            <div className="flex space-x-2">
+                            <div className="flex space-x-4">
                                 <button
                                     type="submit"
                                     className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/80"
@@ -121,8 +122,8 @@ export default function Settings() {
                             </div>
                         </form>
                     ) : (
-                        <div className="flex items-center justify-between">
-                            <span className="text-lg">{settings?.speedtest_frequency} minutes</span>
+                        <div className="flex items-center space-x-4">
+                            <span className="text-lg">{frequency} minutes</span>
                             <button
                                 onClick={() => setIsEditing(true)}
                                 className="px-4 py-2 bg-slate-700 text-white rounded hover:bg-slate-600"
@@ -137,6 +138,8 @@ export default function Settings() {
                     <p>Last updated: {settings?.updated_at ? new Date(settings.updated_at).toLocaleString() : 'Never'}</p>
                 </div>
             </div>
+
+            <SchedulesTable />
         </div>
     );
 } 
