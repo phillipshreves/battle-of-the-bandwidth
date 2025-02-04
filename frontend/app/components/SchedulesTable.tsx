@@ -9,6 +9,7 @@ export default function SchedulesTable() {
     const [schedules, setSchedules] = useState<Schedule[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    const [updating, setUpdating] = useState<string | null>(null);
 
     useEffect(() => {
         fetchSchedules();
@@ -22,8 +23,35 @@ export default function SchedulesTable() {
             setSchedules(data.data || []);
         } catch (err) {
             setError(`Failed to load schedules: ${err}`);
+            console.error('Error loading schedules:', err);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleToggleActive = async (schedule: Schedule) => {
+        setUpdating(schedule.id);
+        try {
+            const response = await fetch('/api/schedules', {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    ...schedule,
+                    is_active: !schedule.is_active
+                }),
+            });
+
+            if (!response.ok) throw new Error('Failed to update schedule');
+            
+            // Refresh schedules after update
+            await fetchSchedules();
+        } catch (err) {
+            setError(`Failed to update schedule: ${err}`);
+            console.error('Error updating schedule:', err);
+        } finally {
+            setUpdating(null);
         }
     };
 
@@ -79,9 +107,19 @@ export default function SchedulesTable() {
                                     <td className="px-6 py-4 whitespace-nowrap text-sm">{schedule.cron_expression}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm">{schedule.provider_name}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${schedule.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                            {schedule.is_active ? 'Active' : 'Inactive'}
-                                        </span>
+                                        <div className="flex items-center space-x-2">
+                                            <button
+                                                onClick={() => handleToggleActive(schedule)}
+                                                disabled={updating === schedule.id}
+                                                className={`px-2 py-1 text-xs rounded ${
+                                                    schedule.is_active 
+                                                    ? 'bg-green-500 hover:bg-green-600 text-white'
+                                                    : 'bg-red-500 hover:bg-red-600 text-white' 
+                                                } disabled:opacity-50 disabled:cursor-not-allowed`}
+                                            >
+                                                {updating === schedule.id ? 'Updating...' : schedule.is_active ? 'Active' : 'Inactive'}
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

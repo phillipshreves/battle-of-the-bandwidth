@@ -15,6 +15,7 @@ export default function CreateSchedule() {
     const [formData, setFormData] = useState({
         name: '',
         cron_expression: '',
+        provider_id: '',
         provider_name: '',
         is_active: true
     });
@@ -94,10 +95,19 @@ export default function CreateSchedule() {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
-        }));
+        if (name === 'provider_id' && value) {
+            const selectedProvider = providers.find(p => p.id === value);
+            setFormData(prev => ({
+                ...prev,
+                provider_id: value,
+                provider_name: selectedProvider?.name || ''
+            }));
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+            }));
+        }
     };
 
     const handleCronSelect = (expression: string) => {
@@ -182,15 +192,15 @@ export default function CreateSchedule() {
                         <div className="text-sm text-slate-400">Loading providers...</div>
                     ) : (
                         <select
-                            name="provider_name"
-                            value={formData.provider_name}
+                            name="provider_id"
+                            value={formData.provider_id}
                             onChange={handleChange}
                             required
                             className="w-full p-2 bg-slate-700 rounded border border-slate-600 focus:border-primary focus:ring-1 focus:ring-primary"
                         >
                             <option value="">Select a provider</option>
                             {providers.map((provider) => (
-                                <option key={provider.id} value={provider.name}>
+                                <option key={provider.id} value={provider.id}>
                                     {provider.name}
                                 </option>
                             ))}

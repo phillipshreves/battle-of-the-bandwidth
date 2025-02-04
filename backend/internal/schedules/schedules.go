@@ -21,7 +21,7 @@ func SchedulesHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	case http.MethodPost:
 		createSchedule(w, r)
-	case http.MethodPut:
+	case http.MethodPatch:
 		updateSchedule(w, r)
 	case http.MethodDelete:
 		deleteSchedule(w, r)
@@ -113,10 +113,10 @@ func createSchedule(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err := database.DB.QueryRow(ctx, `
-		INSERT INTO schedules (name, cron_expression, provider_id, is_active)
-		VALUES ($1, $2, $3, $4)
+		INSERT INTO schedules (name, cron_expression, provider_id, provider_name, is_active)
+		VALUES ($1, $2, $3, $4, $5)
 		RETURNING id, created_at, updated_at
-	`, s.Name, s.CronExpression, s.ProviderID, s.IsActive).Scan(&s.ID, &s.CreatedAt, &s.UpdatedAt)
+	`, s.Name, s.CronExpression, s.ProviderID, s.ProviderName, s.IsActive).Scan(&s.ID, &s.CreatedAt, &s.UpdatedAt)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -142,10 +142,10 @@ func updateSchedule(w http.ResponseWriter, r *http.Request) {
 
 	result, err := database.DB.Exec(ctx, `
 		UPDATE schedules 
-		SET name = $1, cron_expression = $2, provider_id = $3, is_active = $4, 
+		SET name = $1, cron_expression = $2, provider_id = $3, provider_name = $4, is_active = $5, 
 		    updated_at = CURRENT_TIMESTAMP
-		WHERE id = $5
-	`, s.Name, s.CronExpression, s.ProviderID, s.IsActive, s.ID)
+		WHERE id = $6
+	`, s.Name, s.CronExpression, s.ProviderID, s.ProviderName, s.IsActive, s.ID)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

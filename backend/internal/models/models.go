@@ -46,7 +46,7 @@ type Schedule struct {
 	ID             string    `json:"id"`
 	Name           string    `json:"name"`
 	CronExpression string    `json:"cron_expression"`
-	ProviderID     string    `json:"provider_id,omitempty"`
+	ProviderID     string    `json:"provider_id"`
 	ProviderName   string    `json:"provider_name"`
 	IsActive       bool      `json:"is_active"`
 	CreatedAt      time.Time `json:"created_at"`

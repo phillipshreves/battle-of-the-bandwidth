@@ -15,7 +15,7 @@ export async function GET() {
         }
 
         const data = await response.json();
-        return NextResponse.json({ data: data.data, error: null });
+        return NextResponse.json({ data: data, error: null });
     } catch (error) {
         console.error('Error fetching schedules:', error);
         return NextResponse.json(
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
         }
 
         const data = await response.json();
-        return NextResponse.json({ data: data.data, error: null });
+        return NextResponse.json({ data: data, error: null });
     } catch (error) {
         console.error('Error creating schedule:', error);
         return NextResponse.json(
@@ -54,7 +54,7 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
     try {
         const body = await request.json();
-        const response = await fetch(`${BACKEND_URL}/api/schedules/${body.id}`, {
+        const response = await fetch(`${BACKEND_URL}/api/schedules`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
