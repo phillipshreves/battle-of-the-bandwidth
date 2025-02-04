@@ -2,9 +2,15 @@ import { NextResponse } from 'next/server';
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8080';
 
-export async function GET() {
+export async function GET(request: Request) {
     try {
-        const response = await fetch(`${BACKEND_URL}/api/schedules`, {
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get('id');
+        const url = id 
+            ? `${BACKEND_URL}/api/schedules/${id}`
+            : `${BACKEND_URL}/api/schedules`;
+
+        const response = await fetch(url, {
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -54,7 +60,7 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
     try {
         const body = await request.json();
-        const response = await fetch(`${BACKEND_URL}/api/schedules`, {
+        const response = await fetch(`${BACKEND_URL}/api/schedules/${body.id}`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',

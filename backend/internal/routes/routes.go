@@ -15,5 +15,6 @@ func SetupRoutes() {
 	http.HandleFunc("/api/server-names", servers.ServerNamesHandler)
 	http.HandleFunc("/api/settings", settings.SettingsHandler)
 	http.HandleFunc("/api/schedules", schedules.SchedulesHandler)
+	http.HandleFunc("/api/schedules/{id}", schedules.SchedulesHandler)
 	http.HandleFunc("/api/providers", providers.ProvidersHandler)
 }

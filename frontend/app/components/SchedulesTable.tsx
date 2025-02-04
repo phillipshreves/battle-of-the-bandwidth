@@ -119,6 +119,12 @@ export default function SchedulesTable() {
                                             >
                                                 {updating === schedule.id ? 'Updating...' : schedule.is_active ? 'Active' : 'Inactive'}
                                             </button>
+                                            <button
+                                                onClick={() => router.push(`/schedules/edit?id=${schedule.id}`)}
+                                                className="px-2 py-1 text-xs bg-blue-500 hover:bg-blue-600 text-white rounded"
+                                            >
+                                                Edit
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>

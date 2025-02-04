@@ -14,7 +14,7 @@ func SchedulesHandler(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case http.MethodGet:
-		if r.URL.Query().Get("id") != "" {
+		if r.PathValue("id") != "" {
 			getSchedule(w, r)
 		} else {
 			listSchedules(w, r)
@@ -69,7 +69,7 @@ func listSchedules(w http.ResponseWriter, r *http.Request) {
 
 func getSchedule(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	id := r.URL.Query().Get("id")
+	id := r.PathValue("id")
 	if id == "" {
 		http.Error(w, "ID is required", http.StatusBadRequest)
 		return
@@ -135,7 +135,8 @@ func updateSchedule(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if s.ID == "" {
+	id := r.PathValue("id")
+	if id == "" {
 		http.Error(w, "ID is required", http.StatusBadRequest)
 		return
 	}
@@ -145,7 +146,7 @@ func updateSchedule(w http.ResponseWriter, r *http.Request) {
 		SET name = $1, cron_expression = $2, provider_id = $3, provider_name = $4, is_active = $5, 
 		    updated_at = CURRENT_TIMESTAMP
 		WHERE id = $6
-	`, s.Name, s.CronExpression, s.ProviderID, s.ProviderName, s.IsActive, s.ID)
+	`, s.Name, s.CronExpression, s.ProviderID, s.ProviderName, s.IsActive, id)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -164,7 +165,7 @@ func updateSchedule(w http.ResponseWriter, r *http.Request) {
 
 func deleteSchedule(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	id := r.URL.Query().Get("id")
+	id := r.PathValue("id")
 	if id == "" {
 		http.Error(w, "ID is required", http.StatusBadRequest)
 		return
