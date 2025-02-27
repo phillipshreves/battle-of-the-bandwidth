@@ -1,0 +1,68 @@
+services:
+  botb-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: botb-frontend
+    environment:
+      - BACKEND_URL=http://botb-backend:8080
+    ports:
+      - "40080:3000"
+    depends_on:
+      botb-backend:
+        condition: service_started
+      botb-db:
+        condition: service_healthy
+    restart: always
+
+  botb-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: botb-backend
+    environment:
+      - DB_HOST=botb-db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=botb
+    depends_on:
+      botb-db:
+        condition: service_healthy
+    restart: always
+
+  botb-backend-node:
+    container_name: botb-backend-node
+    build:
+      context: ./backend-node
+      dockerfile: Dockerfile
+      target: production
+    environment:
+      - NODE_ENV=production
+    working_dir: /app/src
+    depends_on:
+      botb-db:
+        condition: service_healthy
+
+  botb-db:
+    image: postgres:13
+    container_name: botb-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: botb
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d botb -U postgres" ]
+      interval: 2s
+      retries: 5
+      start_period: 5s
+      timeout: 2s
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./backend/internal/database/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+    restart: always
+    ports:
+      - 5432:5432
+
+volumes:
+  db_data:
