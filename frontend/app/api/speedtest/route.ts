@@ -58,11 +58,27 @@ export async function GET(request: Request) {
     }
 }
 
-export async function POST() {
+export async function POST(request: Request) {
     // Handle POST request to run the speed test
     try {
+        // Get providers from request body if available
+        let providers: string[] | undefined;
+        
+        try {
+            const body = await request.json();
+            providers = body.providers;
+        } catch (error) {
+            // If there's no body or it can't be parsed, continue without providers
+            console.log('No providers specified in request body');
+            console.log(error);
+        }
+        
         const response = await fetch(`${backendUrl}/api/speedtest`, {
             method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: providers ? JSON.stringify({ providers }) : undefined,
         });
 
         if (!response.ok) {

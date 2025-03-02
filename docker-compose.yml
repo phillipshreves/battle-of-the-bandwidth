@@ -26,6 +26,7 @@ services:
       - DB_USER=postgres
       - DB_PASSWORD=postgres
       - DB_NAME=botb
+      - NODE_BACKEND_URL=http://botb-backend-node:3000
     depends_on:
       botb-db:
         condition: service_healthy

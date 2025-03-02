@@ -43,11 +43,6 @@ You can set the time between tests in the settings as well, the default is 1 day
 
 Filters are available above the chart to allow for a more precise data view.
 
-## Roadmap
-
-- Add Cloudflare speed test as a provider
-- Add provider filter
- 
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a pull request.

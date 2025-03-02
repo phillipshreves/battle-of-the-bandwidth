@@ -67,7 +67,7 @@ func loadMigrations() ([]migration, error) {
 
 		content, err := fs.ReadFile(migrationsDir, filepath.Join("migrations", name))
 		if err != nil {
-			return nil, fmt.Errorf("%w: unable to read file ", name)
+			return nil, fmt.Errorf("%v: unable to read file ", name)
 		}
 
 		migrations = append(migrations, migration{

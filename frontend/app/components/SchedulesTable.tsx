@@ -4,16 +4,66 @@ import { useState, useEffect } from 'react';
 import { Schedule } from '@/types/types';
 import { useRouter } from 'next/navigation';
 
+interface Provider {
+    id: string;
+    name: string;
+}
+
 export default function SchedulesTable() {
     const router = useRouter();
     const [schedules, setSchedules] = useState<Schedule[]>([]);
     const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState<string | null>(null);
+    const [providers, setProviders] = useState<Provider[]>([]);
+    const [selectedProvider, setSelectedProvider] = useState<string>('');
+    const [loadingProviders, setLoadingProviders] = useState(true);
 
     useEffect(() => {
         fetchSchedules();
+        fetchProviders();
     }, []);
+
+    const runSpeedTestNow = async () => {
+        try {
+            // Use the selected provider or default to librespeed if none selected
+            const providerToUse = selectedProvider ? 
+                providers.find(p => p.id === selectedProvider)?.name : 'librespeed';
+            
+            const response = await fetch('/api/speedtest', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    providers: [providerToUse]
+                }),
+            });
+            if (!response.ok) throw new Error('Failed to run speed test');
+            setSuccess('Speed test started successfully');
+            setTimeout(() => setSuccess(null), 5000);
+        } catch (err) {
+            setError(`Failed to run speed test: ${err}`);
+        }
+    };
+
+    const fetchProviders = async () => {
+        try {
+            const response = await fetch('/api/providers');
+            if (!response.ok) throw new Error('Failed to fetch providers');
+            const data = await response.json();
+            setProviders(data.data || []);
+            // Set the first provider as default if available
+            if (data.data && data.data.length > 0) {
+                setSelectedProvider(data.data[0].id);
+            }
+        } catch (err) {
+            console.error('Error loading providers:', err);
+        } finally {
+            setLoadingProviders(false);
+        }
+    };
 
     const fetchSchedules = async () => {
         try {
@@ -68,15 +118,50 @@ export default function SchedulesTable() {
     }
 
     return (
-        <div className="mt-8">
-            <div className="flex justify-between items-center mb-4">
+        <div className="p-6 bg-slate-800 rounded-lg shadow-lg max-w-4xl mx-auto mt-8">
+            {success && (
+                <div className="bg-green-500/10 border border-green-500 text-green-500 p-3 rounded mb-4">
+                    {success}
+                </div>
+            )}
+            
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
                 <h2 className="text-2xl font-bold">Scheduled Tests</h2>
-                <button
-                    onClick={() => router.push('/schedules/create')}
-                    className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/80"
-                >
-                    Add Schedule
-                </button>
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                    {/* Speed Test Group */}
+                    <div className="flex w-full sm:w-auto items-stretch bg-slate-700 rounded-lg overflow-hidden border border-slate-600 shadow-sm">
+                        {loadingProviders ? (
+                            <div className="text-sm text-slate-400 px-3 py-2">Loading providers...</div>
+                        ) : (
+                            <select
+                                value={selectedProvider}
+                                onChange={(e) => setSelectedProvider(e.target.value)}
+                                className="py-2 pl-3 pr-8 bg-slate-700 border-r border-slate-600 focus:outline-none text-sm"
+                                aria-label="Select provider"
+                            >
+                                {providers.map((provider) => (
+                                    <option key={provider.id} value={provider.id}>
+                                        {provider.name}
+                                    </option>
+                                ))}
+                            </select>
+                        )}
+                        <button
+                            onClick={runSpeedTestNow}
+                            className="px-4 py-2 bg-primary text-white hover:bg-primary/80 flex-shrink-0 whitespace-nowrap"
+                        >
+                            Run Speed Test Now
+                        </button>
+                    </div>
+                    
+                    {/* Add Schedule Button */}
+                    <button
+                        onClick={() => router.push('/schedules/create')}
+                        className="w-full sm:w-auto px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/80 shadow-sm"
+                    >
+                        Add Schedule
+                    </button>
+                </div>
             </div>
             <div className="overflow-x-auto">
                 {schedules.length === 0 ? (

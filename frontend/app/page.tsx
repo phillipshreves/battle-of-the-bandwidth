@@ -4,11 +4,11 @@ import {useState, useEffect} from 'react';
 import {Serie} from '@nivo/line';
 import {format, parseISO} from 'date-fns';
 import {SpeedTestData} from '@/types/types';
-import Settings from './components/Settings';
 import SpeedTestChart from './components/SpeedTestChart';
 import Filters from './components/Filters';
 import Pagination from './components/Pagination';
 import DataStatistics from './components/DataStatistics';
+import SchedulesTable from '@/app/components/SchedulesTable';
 
 interface FetchFilters {
     startDate?: string;
@@ -173,9 +173,8 @@ export default function Home() {
                     <DataStatistics chartData={chartData} />
                     <SpeedTestChart chartData={chartData} />
                 </div>
+                <SchedulesTable />
             </div>
-
-            <Settings />
 
             <footer className="mt-8 text-center text-sm text-gray-500 space-y-1">
                 <p>Battle of the Bandwidth - Network Performance Monitor</p>
