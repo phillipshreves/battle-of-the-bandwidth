@@ -36,6 +36,7 @@ export async function GET(request: Request) {
     const server = url.searchParams.get("server");
     const limit = url.searchParams.get("limit");
     const offset = url.searchParams.get("offset");
+    const providers = url.searchParams.getAll("providers");
 
     const params = new URLSearchParams();
     if (startDate) params.append("startDate", startDate);
@@ -43,6 +44,13 @@ export async function GET(request: Request) {
     if (server) params.append("server", server);
     if (limit) params.append("limit", limit);
     if (offset) params.append("offset", offset);
+    
+    // Add all providers to the params
+    if (providers && providers.length > 0) {
+        providers.forEach(provider => {
+            params.append("providers", provider);
+        });
+    }
 
     try {
         const response = await fetch(`${backendUrl}/api/speedtest?${params.toString()}`);

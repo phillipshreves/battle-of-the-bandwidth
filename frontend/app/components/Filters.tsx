@@ -3,10 +3,13 @@ interface FiltersProps {
     server: string | null;
     limit: number;
     availableServers: string[];
+    availableProviders: { id: string, name: string }[];
+    selectedProviders: string[];
     isOpen: boolean;
     onDateChange: (index: 0 | 1, value: string) => void;
     onServerChange: (value: string) => void;
     onLimitChange: (value: string) => void;
+    onProvidersChange: (values: string[]) => void;
     onToggle: () => void;
 }
 
@@ -15,15 +18,32 @@ export default function Filters({
     server,
     limit,
     availableServers,
+    availableProviders,
+    selectedProviders,
     isOpen,
     onDateChange,
     onServerChange,
     onLimitChange,
+    onProvidersChange,
     onToggle
 }: FiltersProps) {
     if(!availableServers) {
         availableServers = []
     }
+    if(!availableProviders) {
+        availableProviders = []
+    }
+    
+    const handleProviderChange = (providerId: string) => {
+        if (selectedProviders.includes(providerId)) {
+            // Remove provider if already selected
+            onProvidersChange(selectedProviders.filter(id => id !== providerId));
+        } else {
+            // Add provider if not selected
+            onProvidersChange([...selectedProviders, providerId]);
+        }
+    };
+    
     return (
         <div className="border-t border-secondary/20 pt-4">
             <button
@@ -90,6 +110,29 @@ export default function Filters({
                                 </option>
                             ))}
                         </select>
+                    </div>
+                    
+                    {/* Provider Selection Filter */}
+                    <div className="flex items-start gap-4">
+                        <label className="text-sm font-medium text-secondary w-32 pt-2">Providers</label>
+                        <div className="flex-1 flex flex-wrap gap-2">
+                            {availableProviders.map((provider) => (
+                                <div key={provider.id} className="flex items-center">
+                                    <label className="flex items-center space-x-2 cursor-pointer px-3 py-2 rounded-lg bg-background/80 border border-secondary/20 hover:border-primary transition-colors">
+                                        <input
+                                            type="checkbox"
+                                            className="form-checkbox h-4 w-4 text-primary rounded focus:ring-primary"
+                                            checked={selectedProviders.includes(provider.id)}
+                                            onChange={() => handleProviderChange(provider.id)}
+                                        />
+                                        <span className="text-sm">{provider.name}</span>
+                                    </label>
+                                </div>
+                            ))}
+                            {availableProviders.length === 0 && (
+                                <div className="text-sm text-secondary italic">No providers available</div>
+                            )}
+                        </div>
                     </div>
 
                     <div className="flex items-center gap-4">

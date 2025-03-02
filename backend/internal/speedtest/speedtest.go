@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/phillipshreves/battle-of-the-bandwidth/backend/internal/database"
@@ -36,6 +37,7 @@ func getSpeedTests(w http.ResponseWriter, r *http.Request) {
 	serverName := r.URL.Query().Get("server")
 	limitStr := r.URL.Query().Get("limit")
 	offsetStr := r.URL.Query().Get("offset")
+	providers := r.URL.Query()["providers"] // Get all providers values
 
 	limit := 20
 	offset := 0
@@ -51,7 +53,7 @@ func getSpeedTests(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	results, err := fetchFilteredResults(ctx, startDate, endDate, serverName, limit, offset)
+	results, err := fetchFilteredResults(ctx, startDate, endDate, serverName, providers, limit, offset)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to retrieve results: %v", err), http.StatusInternalServerError)
 		return
@@ -200,7 +202,7 @@ func runCloudflareTest(ctx context.Context, providerID, providerName string) {
 	}
 
 	// Check if response is successful
-	if resp.StatusCode != http.StatusOK {
+	if !(resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusCreated) {
 		log.Printf("Node.js backend returned non-OK status: %d, body: %s", resp.StatusCode, string(body))
 		return
 	}
@@ -251,9 +253,9 @@ func runCloudflareTest(ctx context.Context, providerID, providerName string) {
 		BytesSent:     0, // Not provided by Cloudflare
 		BytesReceived: 0, // Not provided by Cloudflare
 		Ping:          cloudflareResult.Latency,
-		Jitter:        0,                                   // Not provided by Cloudflare
-		Upload:        cloudflareResult.Upload * 1000000,   // Convert Mbps to bps
-		Download:      cloudflareResult.Download * 1000000, // Convert Mbps to bps
+		Jitter:        0, // Not provided by Cloudflare
+		Upload:        cloudflareResult.Upload,
+		Download:      cloudflareResult.Download,
 		Share:         "",
 		ProviderID:    providerID,
 		ProviderName:  providerName,
@@ -266,13 +268,15 @@ func runCloudflareTest(ctx context.Context, providerID, providerName string) {
 	}
 }
 
-func fetchFilteredResults(ctx context.Context, startDate, endDate string, serverName string, limit, offset int) ([]models.SpeedTestResult, error) {
+func fetchFilteredResults(ctx context.Context, startDate, endDate string, serverName string, providers []string, limit, offset int) ([]models.SpeedTestResult, error) {
 	if startDate == "" {
 		startDate = "1900-01-01T00:00:00.000-00"
 	}
 	if endDate == "" {
 		endDate = "2500-01-01T00:00:00.000-00"
 	}
+
+	// Base query
 	query := `
         SELECT 
             timestamp, server_name, server_url, client_ip, client_hostname,
@@ -284,11 +288,24 @@ func fetchFilteredResults(ctx context.Context, startDate, endDate string, server
         WHERE ($1::timestamptz IS NULL OR timestamp >= $1)
         AND ($2::timestamptz IS NULL OR timestamp <= $2)
         AND ($3 = '' OR server_name = $3)
-        ORDER BY timestamp DESC
-        LIMIT $4 OFFSET $5
     `
 
-	rows, err := database.DB.Query(ctx, query, startDate, endDate, serverName, limit, offset)
+	// Add provider filter if providers are specified
+	args := []interface{}{startDate, endDate, serverName}
+	if len(providers) > 0 {
+		placeholders := make([]string, len(providers))
+		for i, _ := range providers {
+			placeholders[i] = fmt.Sprintf("$%d", i+4) // Start from $4
+			args = append(args, providers[i])
+		}
+		query += fmt.Sprintf(" AND (provider_id IN (%s))", strings.Join(placeholders, ", "))
+	}
+
+	// Add ordering, limit and offset
+	query += " ORDER BY timestamp DESC LIMIT $" + strconv.Itoa(len(args)+1) + " OFFSET $" + strconv.Itoa(len(args)+2)
+	args = append(args, limit, offset)
+
+	rows, err := database.DB.Query(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch results: %w", err)
 	}

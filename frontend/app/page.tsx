@@ -14,6 +14,7 @@ interface FetchFilters {
     startDate?: string;
     endDate?: string;
     server?: string;
+    providers?: string[];
     limit?: number;
     offset?: number;
 }
@@ -26,9 +27,21 @@ const defaultSpeedTestData: SpeedTestData = {
 };
 
 async function fetchSpeedTestData(filters: FetchFilters): Promise<{error: string, data: SpeedTestData[]}> {
-    const query = new URLSearchParams(filters as Record<string, string>).toString();
+    const queryFilters = { ...filters };
+    
+    const providers = queryFilters.providers;
+    delete queryFilters.providers;
+    
+    const query = new URLSearchParams(queryFilters as Record<string, string>).toString();
+    
+    let fullQuery = query;
+    if (providers && providers.length > 0) {
+        const providersQuery = providers.map(p => `providers=${encodeURIComponent(p)}`).join('&');
+        fullQuery = fullQuery ? `${fullQuery}&${providersQuery}` : providersQuery;
+    }
+    
     try {
-        const response = await fetch(`/api/speedtest?${query}`);
+        const response = await fetch(`/api/speedtest?${fullQuery}`);
         if (!response.ok) {
             const responseJson = await response.json();
             const errorMessage = responseJson.error;
@@ -50,6 +63,8 @@ export default function Home() {
     const [offset, setOffset] = useState<number>(0);
     const [isAdvancedFiltersOpen, setIsAdvancedFiltersOpen] = useState(false);
     const [availableServers, setAvailableServers] = useState<string[]>([]);
+    const [availableProviders, setAvailableProviders] = useState<{ id: string, name: string }[]>([]);
+    const [selectedProviders, setSelectedProviders] = useState<string[]>([]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -58,6 +73,7 @@ export default function Home() {
                     startDate: dateRange[0] ?? '',
                     endDate: dateRange[1] ?? '',
                     server: server ?? '',
+                    providers: selectedProviders.length > 0 ? selectedProviders : undefined,
                     limit,
                     offset,
                 });
@@ -69,7 +85,7 @@ export default function Home() {
             }
         };
         fetchData();
-    }, [dateRange, server, limit, offset]);
+    }, [dateRange, server, selectedProviders, limit, offset]);
 
     useEffect(() => {
         const fetchServers = async () => {
@@ -83,6 +99,20 @@ export default function Home() {
             }
         };
         fetchServers();
+    }, []);
+    
+    useEffect(() => {
+        const fetchProviders = async () => {
+            try {
+                const response = await fetch('/api/providers');
+                if (!response.ok) throw new Error("Failed to fetch providers");
+                const result = await response.json();
+                setAvailableProviders(result.data || []);
+            } catch (error) {
+                console.error("Error fetching providers:", error);
+            }
+        };
+        fetchProviders();
     }, []);
 
     const handleDateChange = (index: 0 | 1, value: string) => {
@@ -108,6 +138,10 @@ export default function Home() {
 
     const handleNextPage = () => {
         setOffset(offset + limit);
+    };
+
+    const handleProviderChange = (values: string[]) => {
+        setSelectedProviders(values);
     };
 
     const chartData: Serie[] = [
@@ -155,10 +189,13 @@ export default function Home() {
                         server={server}
                         limit={limit}
                         availableServers={availableServers}
+                        availableProviders={availableProviders}
+                        selectedProviders={selectedProviders}
                         isOpen={isAdvancedFiltersOpen}
                         onDateChange={handleDateChange}
                         onServerChange={handleServerChange}
                         onLimitChange={handleLimitChange}
+                        onProvidersChange={handleProviderChange}
                         onToggle={() => setIsAdvancedFiltersOpen(!isAdvancedFiltersOpen)}
                     />
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import CronHelper from '@/app/components/CronHelper';
 import cronstrue from 'cronstrue';
@@ -36,28 +36,7 @@ export default function ScheduleForm() {
     const [showCronHelper, setShowCronHelper] = useState(false);
     const [cronPreview, setCronPreview] = useState<string | null>(null);
 
-    useEffect(() => {
-        fetchProviders();
-        if (isEdit && scheduleId) {
-            fetchSchedule();
-        }
-    }, [isEdit, scheduleId]);
-
-    useEffect(() => {
-        if (formData.cron_expression) {
-            try {
-                const explanation = cronstrue.toString(formData.cron_expression);
-                setCronPreview(explanation);
-            } catch (err) {
-                console.log(`Cronstrue Error: ${err}`);
-                setCronPreview(null);
-            }
-        } else {
-            setCronPreview(null);
-        }
-    }, [formData.cron_expression]);
-
-    const fetchSchedule = async () => {
+    const fetchSchedule = useCallback(async () => {
         setLoadingSchedule(true);
         setError(null);
         try {
@@ -80,7 +59,28 @@ export default function ScheduleForm() {
         } finally {
             setLoadingSchedule(false);
         }
-    };
+    }, [scheduleId, router]);
+
+    useEffect(() => {
+        fetchProviders();
+        if (isEdit && scheduleId) {
+            fetchSchedule();
+        }
+    }, [isEdit, scheduleId, fetchSchedule]);
+
+    useEffect(() => {
+        if (formData.cron_expression) {
+            try {
+                const explanation = cronstrue.toString(formData.cron_expression);
+                setCronPreview(explanation);
+            } catch (err) {
+                console.log(`Cronstrue Error: ${err}`);
+                setCronPreview(null);
+            }
+        } else {
+            setCronPreview(null);
+        }
+    }, [formData.cron_expression]);
 
     const fetchProviders = async () => {
         try {
