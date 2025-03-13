@@ -11,7 +11,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 # Install cron
-RUN apt-get update && apt-get install -y cron
+# RUN apt-get update && apt-get install -y cron
 
 # Get speedtest CLI
 RUN wget https://github.com/librespeed/speedtest-cli/releases/download/v1.0.11/librespeed-cli_1.0.11_linux_amd64.tar.gz -O /home/librespeed-cli_1.0.11_linux_amd64.tar.gz

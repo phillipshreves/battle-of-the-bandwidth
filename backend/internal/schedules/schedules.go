@@ -1,12 +1,23 @@
 package schedules
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/phillipshreves/battle-of-the-bandwidth/backend/internal/database"
 	"github.com/phillipshreves/battle-of-the-bandwidth/backend/internal/models"
+	"github.com/phillipshreves/battle-of-the-bandwidth/backend/internal/speedtest"
+	"github.com/robfig/cron/v3"
+)
+
+// Global cron scheduler instance with mutex for thread safety
+var (
+	cronScheduler *cron.Cron
+	cronMutex     sync.Mutex
 )
 
 func SchedulesHandler(w http.ResponseWriter, r *http.Request) {
@@ -123,6 +134,9 @@ func createSchedule(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Restart cron jobs after creating a new schedule
+	go RestartCronJobs()
+
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(s)
 }
@@ -159,6 +173,9 @@ func updateSchedule(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Restart cron jobs after updating a schedule
+	go RestartCronJobs()
+
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(s)
 }
@@ -183,5 +200,104 @@ func deleteSchedule(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Restart cron jobs after deleting a schedule
+	go RestartCronJobs()
+
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// RestartCronJobs stops the current cron scheduler and starts a new one with updated schedules
+func RestartCronJobs() {
+	cronMutex.Lock()
+	defer cronMutex.Unlock()
+
+	// Stop the existing cron scheduler if it exists
+	if cronScheduler != nil {
+		fmt.Println("Stopping existing cron scheduler")
+		cronScheduler.Stop()
+	}
+
+	// Start a new cron scheduler
+	LoadCronJobsInternal()
+}
+
+// LoadCronJobs initializes the cron scheduler
+func LoadCronJobs() {
+	cronMutex.Lock()
+	defer cronMutex.Unlock()
+
+	LoadCronJobsInternal()
+}
+
+// LoadCronJobsInternal is the internal implementation of LoadCronJobs
+// It assumes the caller has acquired the cronMutex
+func LoadCronJobsInternal() {
+	cronScheduler = cron.New()
+
+	// Get all active schedules from the database
+	ctx := context.Background()
+	rows, err := database.DB.Query(ctx, `
+		SELECT id, name, cron_expression, provider_id, provider_name
+		FROM schedules
+		WHERE is_active = true
+	`)
+	if err != nil {
+		fmt.Printf("Error loading schedules: %v\n", err)
+		return
+	}
+	defer rows.Close()
+
+	// Set up a cron job for each schedule
+	for rows.Next() {
+		var schedule models.Schedule
+		var providerID sql.NullString
+		var providerName sql.NullString
+
+		err := rows.Scan(&schedule.ID, &schedule.Name, &schedule.CronExpression, &providerID, &providerName)
+		if err != nil {
+			fmt.Printf("Error scanning schedule: %v\n", err)
+			continue
+		}
+
+		if providerID.Valid {
+			schedule.ProviderID = providerID.String
+		}
+		if providerName.Valid {
+			schedule.ProviderName = providerName.String
+		}
+
+		// Create a closure to capture the schedule variables
+		func(s models.Schedule) {
+			_, err := cronScheduler.AddFunc(s.CronExpression, func() {
+				fmt.Printf("Running scheduled speed test: %s\n", s.Name)
+
+				// Create a slice of providers to test
+				var providers []string
+				if s.ProviderName != "" {
+					providers = []string{s.ProviderName}
+				}
+
+				// Run the speed test
+				ctx := context.Background()
+				go func() {
+					fmt.Printf("Starting speed test for schedule %s with provider %s\n", s.Name, s.ProviderName)
+					speedtest.RunSpeedTests(ctx, providers)
+				}()
+			})
+
+			if err != nil {
+				fmt.Printf("Error adding cron job for schedule %s: %v\n", s.Name, err)
+			} else {
+				fmt.Printf("Added cron job for schedule: %s with expression: %s\n", s.Name, s.CronExpression)
+			}
+		}(schedule)
+	}
+
+	if err := rows.Err(); err != nil {
+		fmt.Printf("Error iterating schedules: %v\n", err)
+	}
+
+	// Start the cron scheduler
+	cronScheduler.Start()
+	fmt.Println("Cron scheduler started")
 }
