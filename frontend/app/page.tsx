@@ -208,7 +208,11 @@ export default function Home() {
                     />
 
                     <DataStatistics chartData={chartData} />
-                    <SpeedTestChart chartData={chartData} />
+                    
+                    {/* Only show chart on medium screens and larger */}
+                    <div className="hidden md:block">
+                        <SpeedTestChart chartData={chartData} />
+                    </div>
                 </div>
                 <SchedulesTable />
             </div>

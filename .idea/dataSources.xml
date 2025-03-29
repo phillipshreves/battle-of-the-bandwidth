@@ -8,5 +8,12 @@
       <jdbc-url>jdbc:postgresql://localhost:5432/botb</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="botb@192.168.1.142" uuid="2eb8abc3-b822-4746-bed4-6b8450c42228">
+      <driver-ref>postgresql</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.postgresql.Driver</jdbc-driver>
+      <jdbc-url>jdbc:postgresql://192.168.1.142:5432/botb</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>
