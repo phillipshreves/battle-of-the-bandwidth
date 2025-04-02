@@ -67,7 +67,7 @@ async function fetchSpeedTestData(filters: FetchFilters): Promise<{error: string
 }
 
 export default function Home() {
-    const [data, setData] = useState<SpeedTestData[]>([]);
+    const [speedTestData, setSpeedTestData] = useState<SpeedTestData[]>([]);
     const [dateRange, setDateRange] = useState<[string | null, string | null]>([null, null]);
     const [selectedServers, setSelectedServers] = useState<string[]>([]);
     const [limit, setLimit] = useState<number>(20);
@@ -89,7 +89,7 @@ export default function Home() {
                     offset,
                 });
                 console.log(`result.data: ${result.data}`)
-                setData(result.data);
+                setSpeedTestData(result.data);
             } catch (error) {
                 console.log("test")
                 console.error("Error fetching data:", error);
@@ -158,25 +158,25 @@ export default function Home() {
     const chartData: Serie[] = [
         {
             id: "Download Speed (Mbps)",
-            data: (data || [])
+            data: (speedTestData || [])
                 .map((item) => ({
-                    x: format(parseISO(item.timestamp), 'yyyy-MM-dd HH:mm'),
+                    x: format(parseISO(`${item.timestamp}Z`), 'yyyy-MM-dd HH:mm'),
                     y: Math.round(Number(item.download) * 10) / 10,
                 })),
         } as Serie,
         {
             id: "Upload Speed (Mbps)",
-            data: (data || [])
+            data: (speedTestData || [])
                 .map((item) => ({
-                    x: format(parseISO(item.timestamp), 'yyyy-MM-dd HH:mm'),
+                    x: format(parseISO(`${item.timestamp}Z`), 'yyyy-MM-dd HH:mm'),
                     y: Math.round(Number(item.upload) * 10) / 10,
                 })),
         } as Serie,
         {
             id: "Ping (ms)",
-            data: (data || [])
+            data: (speedTestData || [])
                 .map((item) => ({
-                    x: format(parseISO(item.timestamp), 'yyyy-MM-dd HH:mm'),
+                    x: format(parseISO(`${item.timestamp}Z`), 'yyyy-MM-dd HH:mm'),
                     y: Math.round(Number(item.ping) * 10) / 10,
                 })),
         } as Serie
@@ -213,7 +213,7 @@ export default function Home() {
                     <Pagination
                         offset={offset}
                         limit={limit}
-                        dataLength={data?.length || 0}
+                        dataLength={speedTestData?.length || 0}
                         onPreviousPage={handlePreviousPage}
                         onNextPage={handleNextPage}
                     />
