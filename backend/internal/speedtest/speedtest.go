@@ -34,7 +34,7 @@ func getSpeedTests(w http.ResponseWriter, r *http.Request) {
 
 	startDate := r.URL.Query().Get("startDate")
 	endDate := r.URL.Query().Get("endDate")
-	serverName := r.URL.Query().Get("server")
+	serverNames := r.URL.Query()["server"] // Get all server values as an array
 	limitStr := r.URL.Query().Get("limit")
 	offsetStr := r.URL.Query().Get("offset")
 	providers := r.URL.Query()["providers"] // Get all providers values
@@ -53,7 +53,7 @@ func getSpeedTests(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	results, err := fetchFilteredResults(ctx, startDate, endDate, serverName, providers, limit, offset)
+	results, err := fetchFilteredResults(ctx, startDate, endDate, serverNames, providers, limit, offset)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to retrieve results: %v", err), http.StatusInternalServerError)
 		return
@@ -268,7 +268,7 @@ func runCloudflareTest(ctx context.Context, providerID, providerName string) {
 	}
 }
 
-func fetchFilteredResults(ctx context.Context, startDate, endDate string, serverName string, providers []string, limit, offset int) ([]models.SpeedTestResult, error) {
+func fetchFilteredResults(ctx context.Context, startDate, endDate string, serverNames []string, providers []string, limit, offset int) ([]models.SpeedTestResult, error) {
 	if startDate == "" {
 		startDate = "1900-01-01T00:00:00.000-00"
 	}
@@ -287,22 +287,35 @@ func fetchFilteredResults(ctx context.Context, startDate, endDate string, server
         FROM speedtest_results
         WHERE ($1::timestamptz IS NULL OR timestamp >= $1)
         AND ($2::timestamptz IS NULL OR timestamp <= $2)
-        AND ($3 = '' OR server_name = $3)
     `
 
+	args := []interface{}{startDate, endDate}
+	paramIndex := 3
+
+	// Add server names filter if specified
+	if len(serverNames) > 0 {
+		placeholders := make([]string, len(serverNames))
+		for i := range serverNames {
+			placeholders[i] = fmt.Sprintf("$%d", paramIndex)
+			args = append(args, serverNames[i])
+			paramIndex++
+		}
+		query += fmt.Sprintf(" AND (server_name IN (%s))", strings.Join(placeholders, ", "))
+	}
+
 	// Add provider filter if providers are specified
-	args := []interface{}{startDate, endDate, serverName}
 	if len(providers) > 0 {
 		placeholders := make([]string, len(providers))
-		for i, _ := range providers {
-			placeholders[i] = fmt.Sprintf("$%d", i+4) // Start from $4
+		for i := range providers {
+			placeholders[i] = fmt.Sprintf("$%d", paramIndex)
 			args = append(args, providers[i])
+			paramIndex++
 		}
 		query += fmt.Sprintf(" AND (provider_id IN (%s))", strings.Join(placeholders, ", "))
 	}
 
 	// Add ordering, limit and offset
-	query += " ORDER BY timestamp DESC LIMIT $" + strconv.Itoa(len(args)+1) + " OFFSET $" + strconv.Itoa(len(args)+2)
+	query += " ORDER BY timestamp DESC LIMIT $" + strconv.Itoa(paramIndex) + " OFFSET $" + strconv.Itoa(paramIndex+1)
 	args = append(args, limit, offset)
 
 	rows, err := database.DB.Query(ctx, query, args...)
