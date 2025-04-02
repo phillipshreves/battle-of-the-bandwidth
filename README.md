@@ -11,12 +11,12 @@ The application runs speed tests utilizing cron schedules and stores the result.
 ### Architecture
 
 The application consists of four main components:
-- **React Frontend**: React application that provides the user interface
+- **React Frontend**: Web application that provides a simple user interface
 - **Go Backend**: Primary API server that handles speed tests and data storage
 - **Node.js Backend**: Complementary service providing additional functionality through provider packages
 - **Postgres Database**: Persists speed test data
 
-Containerized for your deployment pleasure.
+All containerized for your deployment pleasure.
 
 ### File Structure
 
@@ -33,32 +33,43 @@ Containerized for your deployment pleasure.
 # Clone the repository
 git clone https://github.com/phillipshreves/battle-of-the-bandwidth.git
 
-# Change directories
+# Navigate to project directory
 cd battle-of-the-bandwidth
 
 # Start the application using Docker Compose
 docker compose up -d
 ```
 
-## How to use
+## Usage
 
-You can visit http://localhost:40080/ to view the web application. You will not have any starting data, so do not be alarmed by the empty chart. 
+Access the web application at http://localhost:40080/
 
-To start a speed test instantly, you can use the "Run Speed Test Now" button in the Settings component.
+**Note:** The chart will appear empty until speed tests have been run.
 
-To schedule a speed test, click the "Add Schedule" button above the Schedules table in the Settings component. This will take you to a new page where you can edit the schedule.
+### Running Speed Tests
 
-Filters are available above the chart to allow for a more precise data view.
+- **Manual Test:** Click "Run Speed Test Now" in the Settings section
+- **Scheduled Tests:** Configure automated tests using the "Add Schedule" button
 
-### Working with Schedules
+### Data Analysis
+
+Use the filters above the chart to refine the displayed results.
+
+### Schedule Management
+
+The Schedules table displays your configured automated tests:
+
+- **Name:** Identifier for the schedule
+- **Schedule:** Cron expression defining the test frequency
+- **Provider:** Speed test service being used
+- **Status:** Active (will run at scheduled times) or Inactive (disabled)
+- **Last Run:** Timestamp of most recent execution
+
+#### Schedule Controls
 
 The Schedules table shows all your configured speed tests that run automatically based on cron expressions:
 
-- **Name**: Identifies your schedule for easy reference
-- **Schedule**: Shows the cron expression that determines when tests run
-- **Provider**: Indicates which speed test provider is used
-- **Status**: Shows whether the schedule is set to run. If active, the schedule will run at the next interval.  If inactive, does nothing.
-- **Last Run**: Displays when the schedule last executed a speed test
+#### Cron Expressions
 
 #### Managing Schedules:
 - **Create**: Click "Add Schedule" to create a new scheduled test
