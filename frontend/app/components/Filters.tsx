@@ -1,13 +1,13 @@
 interface FiltersProps {
     dateRange: [string | null, string | null];
-    server: string | null;
+    selectedServers: string[];
     limit: number;
     availableServers: string[];
     availableProviders: { id: string, name: string }[];
     selectedProviders: string[];
     isOpen: boolean;
     onDateChange: (index: 0 | 1, value: string) => void;
-    onServerChange: (value: string) => void;
+    onServerChange: (values: string[]) => void;
     onLimitChange: (value: string) => void;
     onProvidersChange: (values: string[]) => void;
     onToggle: () => void;
@@ -15,7 +15,7 @@ interface FiltersProps {
 
 export default function Filters({
     dateRange,
-    server,
+    selectedServers,
     limit,
     availableServers,
     availableProviders,
@@ -33,6 +33,16 @@ export default function Filters({
     if(!availableProviders) {
         availableProviders = []
     }
+    
+    const handleServerChange = (serverName: string) => {
+        if (selectedServers.includes(serverName)) {
+            // Remove server if already selected
+            onServerChange(selectedServers.filter(name => name !== serverName));
+        } else {
+            // Add server if not selected
+            onServerChange([...selectedServers, serverName]);
+        }
+    };
     
     const handleProviderChange = (providerId: string) => {
         if (selectedProviders.includes(providerId)) {
@@ -94,22 +104,26 @@ export default function Filters({
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                        <label className="text-sm font-medium text-secondary w-32">Server Selection</label>
-                        <select
-                            className="flex-1 px-4 py-2 rounded-lg bg-background/80 border border-secondary/20
-                            focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none
-                            transition-colors duration-200 text-background"
-                            value={server || ''}
-                            onChange={(e) => onServerChange(e.target.value)}
-                        >
-                            <option value="">All Servers</option>
+                    <div className="flex items-start gap-4">
+                        <label className="text-sm font-medium text-secondary w-32 pt-2">Server Selection</label>
+                        <div className="flex-1 flex flex-wrap gap-2">
                             {availableServers.map((serverName) => (
-                                <option key={serverName} value={serverName}>
-                                    {serverName}
-                                </option>
+                                <div key={serverName} className="flex items-center">
+                                    <label className="flex items-center space-x-2 cursor-pointer px-3 py-2 rounded-lg bg-background/80 border border-secondary/20 hover:border-primary transition-colors">
+                                        <input
+                                            type="checkbox"
+                                            className="form-checkbox h-4 w-4 text-primary rounded focus:ring-primary"
+                                            checked={selectedServers.includes(serverName)}
+                                            onChange={() => handleServerChange(serverName)}
+                                        />
+                                        <span className="text-sm">{serverName}</span>
+                                    </label>
+                                </div>
                             ))}
-                        </select>
+                            {availableServers.length === 0 && (
+                                <div className="text-sm text-secondary italic">No servers available</div>
+                            )}
+                        </div>
                     </div>
                     
                     {/* Provider Selection Filter */}

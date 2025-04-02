@@ -33,17 +33,23 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const startDate = url.searchParams.get("startDate");
     const endDate = url.searchParams.get("endDate");
-    const server = url.searchParams.get("server");
+    const servers = url.searchParams.getAll("servers");
     const limit = url.searchParams.get("limit");
     const offset = url.searchParams.get("offset");
     const providers = url.searchParams.getAll("providers");
-
+    
     const params = new URLSearchParams();
     if (startDate) params.append("startDate", startDate);
     if (endDate) params.append("endDate", endDate);
-    if (server) params.append("server", server);
     if (limit) params.append("limit", limit);
     if (offset) params.append("offset", offset);
+
+    // Add all servers to the params
+    if (servers && servers.length > 0) {
+        servers.forEach(server => {
+            params.append("server", server);
+        });
+    }
     
     // Add all providers to the params
     if (providers && providers.length > 0) {
@@ -53,7 +59,8 @@ export async function GET(request: Request) {
     }
 
     try {
-        const response = await fetch(`${backendUrl}/api/speedtest?${params.toString()}`);
+        const url = `${backendUrl}/api/speedtest?${params.toString()}`;
+        const response = await fetch(url);
         if (!response.ok) {
             return NextResponse.json({ error: JSON.stringify(response), data: [] });
         }

@@ -13,7 +13,7 @@ import SchedulesTable from '@/app/components/SchedulesTable';
 interface FetchFilters {
     startDate?: string;
     endDate?: string;
-    server?: string;
+    servers?: string[];
     providers?: string[];
     limit?: number;
     offset?: number;
@@ -32,12 +32,23 @@ async function fetchSpeedTestData(filters: FetchFilters): Promise<{error: string
     const providers = queryFilters.providers;
     delete queryFilters.providers;
     
+    const servers = queryFilters.servers;
+    delete queryFilters.servers;
+    
     const query = new URLSearchParams(queryFilters as Record<string, string>).toString();
     
     let fullQuery = query;
+    
+    // Add providers
     if (providers && providers.length > 0) {
         const providersQuery = providers.map(p => `providers=${encodeURIComponent(p)}`).join('&');
         fullQuery = fullQuery ? `${fullQuery}&${providersQuery}` : providersQuery;
+    }
+    
+    // Add servers
+    if (servers && servers.length > 0) {
+        const serversQuery = servers.map(s => `servers=${encodeURIComponent(s)}`).join('&');
+        fullQuery = fullQuery ? `${fullQuery}&${serversQuery}` : serversQuery;
     }
     
     try {
@@ -58,7 +69,7 @@ async function fetchSpeedTestData(filters: FetchFilters): Promise<{error: string
 export default function Home() {
     const [data, setData] = useState<SpeedTestData[]>([]);
     const [dateRange, setDateRange] = useState<[string | null, string | null]>([null, null]);
-    const [server, setServer] = useState<string | null>(null);
+    const [selectedServers, setSelectedServers] = useState<string[]>([]);
     const [limit, setLimit] = useState<number>(20);
     const [offset, setOffset] = useState<number>(0);
     const [isAdvancedFiltersOpen, setIsAdvancedFiltersOpen] = useState(false);
@@ -72,7 +83,7 @@ export default function Home() {
                 const result = await fetchSpeedTestData({
                     startDate: dateRange[0] ?? '',
                     endDate: dateRange[1] ?? '',
-                    server: server ?? '',
+                    servers: selectedServers,
                     providers: selectedProviders.length > 0 ? selectedProviders : undefined,
                     limit,
                     offset,
@@ -85,7 +96,7 @@ export default function Home() {
             }
         };
         fetchData();
-    }, [dateRange, server, selectedProviders, limit, offset]);
+    }, [dateRange, selectedServers, selectedProviders, limit, offset]);
 
     useEffect(() => {
         const fetchServers = async () => {
@@ -121,8 +132,8 @@ export default function Home() {
         setDateRange(newDateRange as [string | null, string | null]);
     };
 
-    const handleServerChange = (value: string) => {
-        setServer(value || null);
+    const handleServerChange = (values: string[]) => {
+        setSelectedServers(values);
     };
 
     const handleLimitChange = (value: string) => {
@@ -186,7 +197,7 @@ export default function Home() {
                 <div className="glass-card p-6 space-y-6">
                     <Filters
                         dateRange={dateRange}
-                        server={server}
+                        selectedServers={selectedServers}
                         limit={limit}
                         availableServers={availableServers}
                         availableProviders={availableProviders}
