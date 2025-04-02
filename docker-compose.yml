@@ -7,7 +7,7 @@ services:
     environment:
       - BACKEND_URL=http://botb-backend:8080
     ports:
-      - "40080:3000"
+      - 40080:3000
     depends_on:
       botb-backend:
         condition: service_started
@@ -62,8 +62,6 @@ services:
       - db_data:/var/lib/postgresql/data
       - ./backend/internal/database/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
     restart: always
-    ports:
-      - 5432:5432
 
 volumes:
   db_data:
