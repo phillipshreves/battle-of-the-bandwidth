@@ -13,7 +13,7 @@ The application runs speed tests utilizing cron schedules and stores the result.
 The application consists of four main components:
 - **React Frontend**: Web application that provides a simple user interface
 - **Go Backend**: Primary API server that handles speed tests and data storage
-- **Node.js Backend**: Complementary service providing additional functionality through provider packages
+- **Node.js Backend**: Complementary service providing additional functionality through provider packages(Cloudflare)
 - **Postgres Database**: Persists speed test data
 
 All containerized for your deployment pleasure.
@@ -21,8 +21,8 @@ All containerized for your deployment pleasure.
 ### File Structure
 
 - `frontend/` - React-based web interface, utilizing Next.js
-- `backend/` - API server written in Go
-- `backend-node/` - API server written in Typescript(for Cloudflare Library), utilizing NestJS
+- `backend/` - Go API server
+- `backend-node/` - Node.js API server, utilizing NestJS
 - `docker-compose.yml` - Docker Compose configuration for easy container deployment
 
 ## Installation
