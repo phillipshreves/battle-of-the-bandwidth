@@ -169,6 +169,9 @@ export default function Filters({
                     <div className="flex items-center gap-4">
                         <label className="text-sm font-medium text-secondary w-32">Time Display</label>
                         <div className="flex items-center gap-3">
+                                <span className="ml-3 text-sm font-medium">
+                                    UTC
+                                </span>
                             <label className="relative inline-flex items-center cursor-pointer">
                                 <input
                                     type="checkbox"
@@ -181,11 +184,12 @@ export default function Filters({
                                 peer-checked:after:translate-x-full peer-checked:after:border-white 
                                 after:content-[''] after:absolute after:top-[2px] after:left-[2px] 
                                 after:bg-white after:border-secondary/20 after:border after:rounded-full 
-                                after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-                                <span className="ml-3 text-sm font-medium">
-                                    {useLocalTime ? 'Local Time' : 'UTC'}
-                                </span>
+                                after:h-5 after:w-5 after:transition-all peer-checked:bg-primary
+                                border border-secondary/50"></div>
                             </label>
+                                <span className="ml-3 text-sm font-medium">
+                                    Local Time 
+                                </span>
                         </div>
                     </div>
                 </div>

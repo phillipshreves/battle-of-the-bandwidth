@@ -76,7 +76,7 @@ export default function Home() {
     const [availableServers, setAvailableServers] = useState<string[]>([]);
     const [availableProviders, setAvailableProviders] = useState<{ id: string, name: string }[]>([]);
     const [selectedProviders, setSelectedProviders] = useState<string[]>([]);
-    const [useLocalTime, setUseLocalTime] = useState<boolean>(true);
+    const [useLocalTime, setUseLocalTime] = useState<boolean>(false);
 
     useEffect(() => {
         const fetchData = async () => {
