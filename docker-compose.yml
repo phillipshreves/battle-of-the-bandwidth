@@ -4,6 +4,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: botb-frontend
+    env_file: .env
     environment:
       - BACKEND_URL=http://botb-backend:8080
     ports:
@@ -13,9 +14,6 @@ services:
         condition: service_started
       botb-db:
         condition: service_healthy
-    volumes:
-      - /etc/timezone:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
     restart: always
 
   botb-backend:
@@ -23,6 +21,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: botb-backend
+    env_file: .env
     environment:
       - DB_HOST=botb-db
       - DB_PORT=5432
@@ -33,9 +32,6 @@ services:
     depends_on:
       botb-db:
         condition: service_healthy
-    volumes:
-      - /etc/timezone:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
     restart: always
 
   botb-backend-node:
@@ -44,20 +40,19 @@ services:
       context: ./backend-node
       dockerfile: Dockerfile
       target: production
+    env_file: .env
     environment:
       - NODE_ENV=production
     working_dir: /app/src
     depends_on:
       botb-db:
         condition: service_healthy
-    volumes:
-      - /etc/timezone:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
     restart: always
 
   botb-db:
     image: postgres:13
     container_name: botb-db
+    env_file: .env
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -71,8 +66,6 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
       - ./backend/internal/database/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
-      - /etc/timezone:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
     restart: always
 
 volumes:

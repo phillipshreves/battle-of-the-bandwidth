@@ -160,7 +160,7 @@ export default function Home() {
             id: "Download Speed (Mbps)",
             data: (speedTestData || [])
                 .map((item) => ({
-                    x: format(parseISO(`${item.timestamp}Z`), 'yyyy-MM-dd HH:mm'),
+                    x: format(parseISO(`${item.timestamp}`), 'yyyy-MM-dd HH:mm'),
                     y: Math.round(Number(item.download) * 10) / 10,
                 })),
         } as Serie,
@@ -168,7 +168,7 @@ export default function Home() {
             id: "Upload Speed (Mbps)",
             data: (speedTestData || [])
                 .map((item) => ({
-                    x: format(parseISO(`${item.timestamp}Z`), 'yyyy-MM-dd HH:mm'),
+                    x: format(parseISO(`${item.timestamp}`), 'yyyy-MM-dd HH:mm'),
                     y: Math.round(Number(item.upload) * 10) / 10,
                 })),
         } as Serie,
@@ -176,7 +176,7 @@ export default function Home() {
             id: "Ping (ms)",
             data: (speedTestData || [])
                 .map((item) => ({
-                    x: format(parseISO(`${item.timestamp}Z`), 'yyyy-MM-dd HH:mm'),
+                    x: format(parseISO(`${item.timestamp}`), 'yyyy-MM-dd HH:mm'),
                     y: Math.round(Number(item.ping) * 10) / 10,
                 })),
         } as Serie
