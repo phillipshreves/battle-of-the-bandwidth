@@ -244,7 +244,8 @@ export default function Home() {
             </div>
 
             <footer className="mt-8 text-center text-sm text-gray-500 space-y-1">
-                <p>Battle of the Bandwidth - Network Performance Monitor</p>
+                <p>Battle of the Bandwidth by Phillip Shreves</p>
+                <p>https://github.com/phillipshreves/battle-of-the-bandwidth</p>
                 <p>Licensed under the GNU Affero General Public License v3.0 (AGPL-3.0)</p>
             </footer>
         </main>
