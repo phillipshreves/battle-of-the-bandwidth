@@ -4,7 +4,9 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: botb-frontend
-    env_file: .env
+    env_file: 
+      - path: .env
+        required: false
     environment:
       - BACKEND_URL=http://botb-backend:8080
     ports:
@@ -21,7 +23,9 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: botb-backend
-    env_file: .env
+    env_file: 
+      - path: .env
+        required: false
     environment:
       - DB_HOST=botb-db
       - DB_PORT=5432
@@ -40,7 +44,9 @@ services:
       context: ./backend-node
       dockerfile: Dockerfile
       target: production
-    env_file: .env
+    env_file: 
+      - path: .env
+        required: false
     environment:
       - NODE_ENV=production
     working_dir: /app/src
@@ -52,7 +58,9 @@ services:
   botb-db:
     image: postgres:13
     container_name: botb-db
-    env_file: .env
+    env_file: 
+      - path: .env
+        required: false
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres

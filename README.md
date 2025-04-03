@@ -49,7 +49,7 @@ Access the web application at http://localhost:40080/
 
 ### Running Speed Tests
 
-- **Manual Test:** Click "Run Speed Test Now" in the Settings section
+- **Manual Test:** Click the "Run Speed Test Now" button
 - **Scheduled Tests:** Configure automated tests using the "Add Schedule" button
 
 ### Data Analysis
@@ -89,7 +89,11 @@ The cron service utilized [robfig's cron package](https://github.com/robfig/cron
 
 ### Time Zone Management
 
-To modify the timezone for all containers, create a .env file with a `TZ` and a `CRON_TZ` variables. Set the variables equal to the Posix time zone of your preference. Default is UTC.
+In the filters section, you can toggle chart data to display in server time or local client time.
+
+Setting the server time zone is important as your cron schedules run based on this time zone. Best practice is to leave it as UTC, however, if you find it easier to manage in your local time zone, following the instructions below to change it.
+
+To modify the timezone for all containers, create a .env file with a `TZ` and a `CRON_TZ` variables. Set the variables equal to the [tz identifier](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) for the time zone of your preference. Default tz identifier is Etc/UTC.
 
 Example .env file:
 ```
