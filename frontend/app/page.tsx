@@ -245,7 +245,7 @@ export default function Home() {
 
             <footer className="mt-8 text-center text-sm text-gray-500 space-y-1">
                 <p>Battle of the Bandwidth by Phillip Shreves</p>
-                <p>https://github.com/phillipshreves/battle-of-the-bandwidth</p>
+                <p><a href="https://github.com/phillipshreves/battle-of-the-bandwidth">https://github.com/phillipshreves/battle-of-the-bandwidth</a></p>
                 <p>Licensed under the GNU Affero General Public License v3.0 (AGPL-3.0)</p>
             </footer>
         </main>
