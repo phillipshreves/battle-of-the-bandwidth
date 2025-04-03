@@ -6,10 +6,12 @@ interface FiltersProps {
     availableProviders: { id: string, name: string }[];
     selectedProviders: string[];
     isOpen: boolean;
+    useLocalTime: boolean;
     onDateChange: (index: 0 | 1, value: string) => void;
     onServerChange: (values: string[]) => void;
     onLimitChange: (value: string) => void;
     onProvidersChange: (values: string[]) => void;
+    onTimeDisplayToggle: () => void;
     onToggle: () => void;
 }
 
@@ -21,10 +23,12 @@ export default function Filters({
     availableProviders,
     selectedProviders,
     isOpen,
+    useLocalTime,
     onDateChange,
     onServerChange,
     onLimitChange,
     onProvidersChange,
+    onTimeDisplayToggle,
     onToggle
 }: FiltersProps) {
     if(!availableServers) {
@@ -159,6 +163,30 @@ export default function Filters({
                             value={limit}
                             onChange={(e) => onLimitChange(e.target.value)}
                         />
+                    </div>
+
+                    {/* Time Display Toggle */}
+                    <div className="flex items-center gap-4">
+                        <label className="text-sm font-medium text-secondary w-32">Time Display</label>
+                        <div className="flex items-center gap-3">
+                            <label className="relative inline-flex items-center cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    className="sr-only peer"
+                                    checked={useLocalTime}
+                                    onChange={onTimeDisplayToggle}
+                                />
+                                <div className="w-11 h-6 bg-secondary/30 peer-focus:outline-none peer-focus:ring-4 
+                                peer-focus:ring-primary/20 rounded-full peer 
+                                peer-checked:after:translate-x-full peer-checked:after:border-white 
+                                after:content-[''] after:absolute after:top-[2px] after:left-[2px] 
+                                after:bg-white after:border-secondary/20 after:border after:rounded-full 
+                                after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                <span className="ml-3 text-sm font-medium">
+                                    {useLocalTime ? 'Local Time' : 'UTC'}
+                                </span>
+                            </label>
+                        </div>
                     </div>
                 </div>
             )}

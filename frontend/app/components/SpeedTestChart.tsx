@@ -2,11 +2,18 @@ import {ResponsiveLine, Serie} from '@nivo/line';
 
 interface SpeedTestChartProps {
     chartData: Serie[];
+    useLocalTime?: boolean;
 }
 
-export default function SpeedTestChart({chartData}: SpeedTestChartProps) {
+export default function SpeedTestChart({chartData, useLocalTime = false}: SpeedTestChartProps) {
     return (
         <div className="h-[600px] glass-card p-6">
+            <div className="flex justify-end mb-2">
+                <span className="px-2 py-1 text-xs font-medium rounded-md bg-background/60 text-secondary">
+                    Time: {useLocalTime ? 'Local' : 'UTC'}
+                </span>
+            </div>
+            
             {chartData?.length > 0 && chartData.some(series => series?.data?.length > 0) ? (
                 <ResponsiveLine
                     data={chartData}

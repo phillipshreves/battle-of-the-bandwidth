@@ -76,6 +76,7 @@ export default function Home() {
     const [availableServers, setAvailableServers] = useState<string[]>([]);
     const [availableProviders, setAvailableProviders] = useState<{ id: string, name: string }[]>([]);
     const [selectedProviders, setSelectedProviders] = useState<string[]>([]);
+    const [useLocalTime, setUseLocalTime] = useState<boolean>(true);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -88,15 +89,13 @@ export default function Home() {
                     limit,
                     offset,
                 });
-                console.log(`result.data: ${result.data}`)
                 setSpeedTestData(result.data);
             } catch (error) {
-                console.log("test")
                 console.error("Error fetching data:", error);
             }
         };
         fetchData();
-    }, [dateRange, selectedServers, selectedProviders, limit, offset]);
+    }, [dateRange, selectedServers, selectedProviders, useLocalTime, limit, offset]);
 
     useEffect(() => {
         const fetchServers = async () => {
@@ -155,12 +154,27 @@ export default function Home() {
         setSelectedProviders(values);
     };
 
+    const handleTimeDisplayToggle = () => {
+        setUseLocalTime(!useLocalTime);
+    };
+
+    const formatTimestamp = (timestamp: string) => {
+        const date = parseISO(timestamp);
+        console.log(`timestamp: ${timestamp}`)
+        if (useLocalTime) {
+            return format(date, 'yyyy-MM-dd HH:mm');
+        } else {
+            const dateISO = date.toISOString();
+            return `${dateISO.substring(0, 10)} ${dateISO.substring(11, 16)}Z`
+        }
+    };
+
     const chartData: Serie[] = [
         {
             id: "Download Speed (Mbps)",
             data: (speedTestData || [])
                 .map((item) => ({
-                    x: format(parseISO(`${item.timestamp}`), 'yyyy-MM-dd HH:mm'),
+                    x: formatTimestamp(item.timestamp),
                     y: Math.round(Number(item.download) * 10) / 10,
                 })),
         } as Serie,
@@ -168,7 +182,7 @@ export default function Home() {
             id: "Upload Speed (Mbps)",
             data: (speedTestData || [])
                 .map((item) => ({
-                    x: format(parseISO(`${item.timestamp}`), 'yyyy-MM-dd HH:mm'),
+                    x: formatTimestamp(item.timestamp),
                     y: Math.round(Number(item.upload) * 10) / 10,
                 })),
         } as Serie,
@@ -176,7 +190,7 @@ export default function Home() {
             id: "Ping (ms)",
             data: (speedTestData || [])
                 .map((item) => ({
-                    x: format(parseISO(`${item.timestamp}`), 'yyyy-MM-dd HH:mm'),
+                    x: formatTimestamp(item.timestamp),
                     y: Math.round(Number(item.ping) * 10) / 10,
                 })),
         } as Serie
@@ -203,10 +217,12 @@ export default function Home() {
                         availableProviders={availableProviders}
                         selectedProviders={selectedProviders}
                         isOpen={isAdvancedFiltersOpen}
+                        useLocalTime={useLocalTime}
                         onDateChange={handleDateChange}
                         onServerChange={handleServerChange}
                         onLimitChange={handleLimitChange}
                         onProvidersChange={handleProviderChange}
+                        onTimeDisplayToggle={handleTimeDisplayToggle}
                         onToggle={() => setIsAdvancedFiltersOpen(!isAdvancedFiltersOpen)}
                     />
 
@@ -221,7 +237,7 @@ export default function Home() {
                     <DataStatistics chartData={chartData} />
                     
                     <div className="hidden md:block">
-                        <SpeedTestChart chartData={chartData} />
+                        <SpeedTestChart chartData={chartData} useLocalTime={useLocalTime} />
                     </div>
                 </div>
                 <SchedulesTable />
