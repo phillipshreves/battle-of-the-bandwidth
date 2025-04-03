@@ -25,6 +25,8 @@ USER node
 FROM public.ecr.aws/docker/library/node:lts-slim AS production
 ARG NODE_ENV=production
 ENV NODE_ENV=${NODE_ENV}
+ENV TZ=Etc/UTC
+ENV CRON_TZ=Etc/UTC
 WORKDIR /app/src
 COPY --chown=node:node ./package*.json  ./
 COPY --chown=node:node --from=build /app/src/node_modules ./node_modules

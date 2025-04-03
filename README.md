@@ -24,6 +24,7 @@ All containerized for your deployment pleasure.
 - `backend/` - Go API server
 - `backend-node/` - Node.js API server, utilizing NestJS
 - `docker-compose.yml` - Docker Compose configuration for easy container deployment
+- `.env` - Provides timezone control
 
 ## Installation
 
@@ -85,6 +86,16 @@ Schedules use standard cron syntax (e.g., `0 */6 * * *` for every 6 hours). The 
 - Step values
 
 The cron service utilized [robfig's cron package](https://github.com/robfig/cron). Confirm support of cron functionality by visiting the project.
+
+### Time Zone Management
+
+To modify the timezone for all containers, create a .env file with a `TZ` and a `CRON_TZ` variables. Set the variables equal to the Posix time zone of your preference. Default is UTC.
+
+Example .env file:
+```
+TZ=Etc/UTC
+CRON_TZ=Etc/UTC
+```
 
 ## Acknowledgements
 

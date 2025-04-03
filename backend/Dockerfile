@@ -28,6 +28,10 @@ RUN go mod tidy
 # Build the Go application
 RUN go build -o botb-backend ./cmd
 
+# Set timezone defaults
+ENV TZ=Etc/UTC
+ENV CRON_TZ=Etc/UTC
+
 # Expose the app's port
 EXPOSE 8080
 
