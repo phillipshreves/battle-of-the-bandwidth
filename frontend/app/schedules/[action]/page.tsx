@@ -37,8 +37,11 @@ export default function ScheduleForm() {
     const [cronPreview, setCronPreview] = useState<string | null>(null);
 
     const fetchSchedule = useCallback(async () => {
+        if (!scheduleId) return;
+        
         setLoadingSchedule(true);
         setError(null);
+        
         try {
             const response = await fetch(`/api/schedules?id=${scheduleId}`);
             if (!response.ok) {
