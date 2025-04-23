@@ -24,6 +24,8 @@ export default function ScheduleForm() {
         provider_id: '',
         provider_name: '',
         is_active: true,
+        host_endpoint: '',
+        host_port: '',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
     });
@@ -289,6 +291,42 @@ export default function ScheduleForm() {
                         </select>
                     )}
                 </div>
+
+                {formData.provider_name === 'iperf3' && (
+                    <>
+                        <div>
+                            <label className="block text-sm font-medium mb-2">
+                                Host Endpoint
+                            </label>
+                            <input
+                                type="text"
+                                name="host_endpoint"
+                                value={formData.host_endpoint || ''}
+                                onChange={handleChange}
+                                required
+                                className="w-full p-2 bg-slate-700 rounded border border-slate-600 focus:border-primary focus:ring-1 focus:ring-primary"
+                                placeholder="example.com"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-2">
+                                Host Port
+                            </label>
+                            <input
+                                type="text"
+                                name="host_port"
+                                value={formData.host_port || ''}
+                                onChange={handleChange}
+                                required
+                                className="w-full p-2 bg-slate-700 rounded border border-slate-600 focus:border-primary focus:ring-1 focus:ring-primary"
+                                placeholder="5201"
+                            />
+                        </div>
+                        <div className="text-sm text-slate-400 mt-1">
+                            If you do not have your own iperf3 server setup, you can find a public iperf3 server here: <a href="https://iperf.fr/iperf-servers.php" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">https://iperf.fr/iperf-servers.php</a>
+                        </div>
+                    </>
+                )}
 
                 <div className="flex items-center space-x-2">
                     <input
