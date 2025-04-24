@@ -16,7 +16,7 @@ The application consists of four main components:
 - **Node.js Backend**: Complementary service providing additional functionality through provider packages(Cloudflare)
 - **Postgres Database**: Persists speed test data
 
-All containerized for your deployment pleasure.
+All containerized for your deployment pleasure. An example docker-compose.yml file is provided, but be sure to edit it for your needs.
 
 ### File Structure
 
@@ -68,11 +68,6 @@ The Schedules table displays your configured automated tests:
 
 #### Schedule Controls
 
-The Schedules table shows all your configured speed tests that run automatically based on cron expressions:
-
-#### Cron Expressions
-
-#### Managing Schedules:
 - **Create**: Click "Add Schedule" to create a new scheduled test
 - **Edit**: Click the edit icon on any schedule row to modify its settings
 - **Delete**: Click the delete icon to remove a schedule
@@ -101,6 +96,17 @@ TZ=Etc/UTC
 CRON_TZ=Etc/UTC
 ```
 
+## Providers
+
+Three providers are currently supported:
+- Librespeed
+- Cloudflare
+- iperf3
+
+All three providers have public servers you can run speed tests against.
+
+The biggest advantage of the iperf3 provider is that it can be used for internal testing. This allows you to track infrastructure changes and their effect on your network speed.
+
 ## Acknowledgements
 
-This application utilizes [CloudFlare](https://github.com/cloudflare/speedtest?tab=readme-ov-file) and the [LibreSpeed](https://librespeed.org/) project to perform speed tests. Please visit their sponsors to support the project.
+This application utilizes [CloudFlare](https://github.com/cloudflare/speedtest?tab=readme-ov-file), [iperf3](https://iperf.fr/), and the [LibreSpeed](https://librespeed.org/) project to perform speed tests. Please visit their sponsors to support the project.
