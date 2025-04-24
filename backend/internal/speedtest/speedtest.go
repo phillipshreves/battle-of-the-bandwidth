@@ -96,13 +96,13 @@ func storeResult(ctx context.Context, result models.SpeedTestResult, rawResult s
 	return fmt.Errorf("failed to store speed test result: %w", err)
 }
 
-func RunSpeedTests(ctx context.Context, providers []string) {
+func RunSpeedTests(ctx context.Context, requestData models.SpeedTestRequest) {
 	// If no providers specified, use librespeed as default
-	if len(providers) == 0 {
-		providers = []string{"librespeed"}
+	if len(requestData.Providers) == 0 {
+		requestData.Providers = []string{"librespeed"}
 	}
 
-	for _, providerName := range providers {
+	for _, providerName := range requestData.Providers {
 		// Skip if context is canceled
 		if ctx.Err() != nil {
 			log.Printf("Context canceled, stopping speed tests")
@@ -119,11 +119,13 @@ func RunSpeedTests(ctx context.Context, providers []string) {
 
 		log.Printf("Running speed test with provider: %s", providerName)
 
-		// Currently only librespeed is supported
+		// Run the appropriate test based on provider
 		if providerName == "librespeed" {
 			runLibrespeedTest(ctx, providerID, providerName)
 		} else if providerName == "cloudflare" {
 			runCloudflareTest(ctx, providerID, providerName)
+		} else if providerName == "iperf3" {
+			runIperf3Test(ctx, providerID, providerName, requestData.HostEndpoint, requestData.HostPort)
 		} else {
 			log.Printf("Provider '%s' is not currently supported for testing", providerName)
 		}
@@ -268,6 +270,66 @@ func runCloudflareTest(ctx context.Context, providerID, providerName string) {
 	}
 }
 
+func runIperf3Test(ctx context.Context, providerID, providerName, hostEndpoint, hostPort string) {
+	cmd := exec.CommandContext(ctx, "iperf3", "-c", hostEndpoint, "-p", hostPort, "--json")
+	output, err := cmd.Output()
+	if err != nil {
+		if ctx.Err() == context.Canceled {
+			log.Printf("Speed test was canceled: context deadline exceeded or request canceled")
+			return
+		}
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			log.Printf("Speed test failed with stderr: %s", string(exitErr.Stderr))
+		} else {
+			log.Printf("Error running speedtest: %v", err)
+		}
+		return
+	}
+
+	var iperf3Result models.Iperf3Result
+	if err := json.Unmarshal(output, &iperf3Result); err != nil {
+		log.Printf("Error parsing iperf3 JSON: %v\nOutput: %s", err, string(output))
+		return
+	}
+
+	result := iperf3Result.ToSpeedTestResult(providerID, providerName)
+
+	cmd = exec.CommandContext(ctx, "ping", "-c", "10", hostEndpoint)
+	output, err = cmd.Output()
+	if err != nil {
+		log.Printf("Error pinging iperf.test.kdl.io: %v", err)
+		return
+	}
+
+	pingOutput := string(output)
+
+	// Parse the ping statistics to get the average ping time
+	lines := strings.Split(pingOutput, "\n")
+	for _, line := range lines {
+		if strings.Contains(line, "round-trip") {
+			// Extract average ping from the line like:
+			// round-trip min/avg/max/stddev = 2.979/8.678/18.574/4.779 ms
+			parts := strings.Split(line, " = ")
+			if len(parts) == 2 {
+				stats := strings.Split(parts[1], "/")
+				if len(stats) >= 2 {
+					pingFloat, err := strconv.ParseFloat(stats[1], 64)
+					if err != nil {
+						log.Printf("Error parsing ping average: %v", err)
+					} else {
+						result.Ping = pingFloat
+					}
+					break
+				}
+			}
+		}
+	}
+
+	if err := storeResult(ctx, result, string(output)); err != nil {
+		log.Printf("Error storing result: %v", err)
+	}
+}
+
 func fetchFilteredResults(ctx context.Context, startDate, endDate string, serverNames []string, providers []string, limit, offset int) ([]models.SpeedTestResult, error) {
 	if startDate == "" {
 		startDate = "1900-01-01T00:00:00.000-00"
@@ -352,7 +414,9 @@ func fetchFilteredResults(ctx context.Context, startDate, endDate string, server
 
 func startSpeedTest(w http.ResponseWriter, r *http.Request) {
 	var requestData struct {
-		Providers []string `json:"providers"`
+		Providers    []string `json:"providers"`
+		HostEndpoint string   `json:"hostEndpoint"`
+		HostPort     string   `json:"hostPort"`
 	}
 
 	// Default to librespeed if no providers specified
@@ -367,7 +431,7 @@ func startSpeedTest(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	go RunSpeedTests(context.Background(), requestData.Providers)
+	go RunSpeedTests(context.Background(), requestData)
 
 	w.Header().Set("Content-Type", "application/json")
 	response := models.DefaultJsonResponse{

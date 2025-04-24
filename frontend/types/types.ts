@@ -44,4 +44,6 @@ export interface Schedule {
     is_active: boolean;
     created_at: string;
     updated_at: string;
+    host_endpoint?: string;
+    host_port?: string;
 }

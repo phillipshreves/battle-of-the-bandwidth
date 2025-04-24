@@ -160,7 +160,6 @@ export default function Home() {
 
     const formatTimestamp = (timestamp: string) => {
         const date = parseISO(timestamp);
-        console.log(`timestamp: ${timestamp}`)
         if (useLocalTime) {
             return format(date, 'yyyy-MM-dd HH:mm');
         } else {
