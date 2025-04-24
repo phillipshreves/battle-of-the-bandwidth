@@ -294,20 +294,36 @@ func runIperf3Test(ctx context.Context, providerID, providerName, hostEndpoint, 
 
 	result := iperf3Result.ToSpeedTestResult(providerID, providerName)
 
-	cmd = exec.CommandContext(ctx, "ping", "-c", "1", hostEndpoint)
+	cmd = exec.CommandContext(ctx, "ping", "-c", "10", hostEndpoint)
 	output, err = cmd.Output()
 	if err != nil {
 		log.Printf("Error pinging iperf.test.kdl.io: %v", err)
 		return
 	}
 
-	ping := strings.Split(string(output), " ")[3]
-	pingFloat, err := strconv.ParseFloat(ping, 64)
-	if err != nil {
-		log.Printf("Error parsing ping: %v", err)
-		return
+	pingOutput := string(output)
+
+	// Parse the ping statistics to get the average ping time
+	lines := strings.Split(pingOutput, "\n")
+	for _, line := range lines {
+		if strings.Contains(line, "round-trip") {
+			// Extract average ping from the line like:
+			// round-trip min/avg/max/stddev = 2.979/8.678/18.574/4.779 ms
+			parts := strings.Split(line, " = ")
+			if len(parts) == 2 {
+				stats := strings.Split(parts[1], "/")
+				if len(stats) >= 2 {
+					pingFloat, err := strconv.ParseFloat(stats[1], 64)
+					if err != nil {
+						log.Printf("Error parsing ping average: %v", err)
+					} else {
+						result.Ping = pingFloat
+					}
+					break
+				}
+			}
+		}
 	}
-	result.Ping = pingFloat
 
 	if err := storeResult(ctx, result, string(output)); err != nil {
 		log.Printf("Error storing result: %v", err)

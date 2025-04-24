@@ -229,12 +229,11 @@ func RestartCronJobs() {
 
 	// Stop the existing cron scheduler if it exists
 	if cronScheduler != nil {
-		fmt.Println("Stopping existing cron scheduler")
 		cronScheduler.Stop()
 	}
 
 	// Start a new cron scheduler
-	LoadCronJobsInternal()
+	loadCronJobsInternal()
 }
 
 // LoadCronJobs initializes the cron scheduler
@@ -242,18 +241,18 @@ func LoadCronJobs() {
 	cronMutex.Lock()
 	defer cronMutex.Unlock()
 
-	LoadCronJobsInternal()
+	loadCronJobsInternal()
 }
 
-// LoadCronJobsInternal is the internal implementation of LoadCronJobs
+// loadCronJobsInternal is the internal implementation of LoadCronJobs
 // It assumes the caller has acquired the cronMutex
-func LoadCronJobsInternal() {
+func loadCronJobsInternal() {
 	cronScheduler = cron.New()
 
 	// Get all active schedules from the database
 	ctx := context.Background()
 	rows, err := database.DB.Query(ctx, `
-		SELECT id, name, cron_expression, provider_id, provider_name
+		SELECT id, name, cron_expression, provider_id, provider_name, host_endpoint, host_port
 		FROM schedules
 		WHERE is_active = true
 	`)
@@ -268,8 +267,9 @@ func LoadCronJobsInternal() {
 		var schedule models.Schedule
 		var providerID sql.NullString
 		var providerName sql.NullString
-
-		err := rows.Scan(&schedule.ID, &schedule.Name, &schedule.CronExpression, &providerID, &providerName)
+		var hostEndpoint sql.NullString
+		var hostPort sql.NullString
+		err := rows.Scan(&schedule.ID, &schedule.Name, &schedule.CronExpression, &providerID, &providerName, &hostEndpoint, &hostPort)
 		if err != nil {
 			fmt.Printf("Error scanning schedule: %v\n", err)
 			continue
@@ -281,11 +281,16 @@ func LoadCronJobsInternal() {
 		if providerName.Valid {
 			schedule.ProviderName = providerName.String
 		}
+		if hostEndpoint.Valid {
+			schedule.HostEndpoint = hostEndpoint.String
+		}
+		if hostPort.Valid {
+			schedule.HostPort = hostPort.String
+		}
 
 		// Create a closure to capture the schedule variables
 		func(s models.Schedule) {
 			_, err := cronScheduler.AddFunc(s.CronExpression, func() {
-				fmt.Printf("Running scheduled speed test: %s\n", s.Name)
 
 				// Create a slice of providers to test
 				var providers []string
@@ -307,8 +312,6 @@ func LoadCronJobsInternal() {
 
 			if err != nil {
 				fmt.Printf("Error adding cron job for schedule %s: %v\n", s.Name, err)
-			} else {
-				fmt.Printf("Added cron job for schedule: %s with expression: %s\n", s.Name, s.CronExpression)
 			}
 		}(schedule)
 	}

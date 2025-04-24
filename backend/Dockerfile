@@ -32,10 +32,8 @@ WORKDIR /app
 # Copy the built application from the builder stage
 COPY --from=builder /app/botb-backend .
 
-RUN apt-get update && apt-get install wget -y
-
-# Install iperf3
-RUN apt-get install iperf3 -y
+RUN apt-get update && apt-get install wget -y && apt-get install iputils-ping -y && apt-get install iperf3 -y
+RUN setcap cap_net_raw+p /usr/bin/ping
 
 # Get speedtest CLI
 RUN wget https://github.com/librespeed/speedtest-cli/releases/download/v1.0.11/librespeed-cli_1.0.11_linux_amd64.tar.gz -O /home/librespeed-cli_1.0.11_linux_amd64.tar.gz
