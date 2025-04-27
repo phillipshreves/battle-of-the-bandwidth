@@ -35,7 +35,6 @@ interface SpeedTestRequestBody {
 const backendUrl = process.env.BACKEND_URL || 'http://localhost:8080';
 
 export async function GET(request: Request) {
-    // Handle GET request to fetch speed test results
     const url = new URL(request.url);
     const startDate = url.searchParams.get("startDate");
     const endDate = url.searchParams.get("endDate");
@@ -50,14 +49,12 @@ export async function GET(request: Request) {
     if (limit) params.append("limit", limit);
     if (offset) params.append("offset", offset);
 
-    // Add all servers to the params
     if (servers && servers.length > 0) {
         servers.forEach(server => {
             params.append("server", server);
         });
     }
     
-    // Add all providers to the params
     if (providers && providers.length > 0) {
         providers.forEach(provider => {
             params.append("providers", provider);
@@ -80,9 +77,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-    // Handle POST request to run the speed test
     try {
-        // Get providers and host information from request body if available
         let providers: string[] | undefined;
         let hostEndpoint: string | undefined;
         let hostPort: string | undefined;
@@ -93,12 +88,10 @@ export async function POST(request: Request) {
             hostEndpoint = body.hostEndpoint;
             hostPort = body.hostPort;
         } catch (error) {
-            // If there's no body or it can't be parsed, continue without providers
             console.log('No providers specified in request body');
             console.log(error);
         }
         
-        // Prepare request body with all parameters
         const requestBody: SpeedTestRequestBody = {};
         if (providers) requestBody.providers = providers;
         if (hostEndpoint) requestBody.hostEndpoint = hostEndpoint;

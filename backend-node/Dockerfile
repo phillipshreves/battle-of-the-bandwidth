@@ -6,7 +6,7 @@ FROM public.ecr.aws/docker/library/node:lts-slim AS development
 WORKDIR /app/src
 COPY --chown=node:node ./package*.json  ./
 RUN apt-get update && apt-get install -y procps
-RUN npm ci
+RUN npm install
 COPY --chown=node:node . .
 USER node
 

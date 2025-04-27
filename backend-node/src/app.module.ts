@@ -4,7 +4,6 @@ import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import configuration from './config/configuration';
 import { HttpModule } from '@nestjs/axios';
-import { ErrorHandlingModule } from './error-handling/error-handling.module';
 import { CloudflareModule } from './cloudflare/cloudflare.module';
 
 @Module({
@@ -15,7 +14,6 @@ import { CloudflareModule } from './cloudflare/cloudflare.module';
       cache: true,
       isGlobal: true,
     }),
-    ErrorHandlingModule,
     CloudflareModule,
   ],
   controllers: [AppController],

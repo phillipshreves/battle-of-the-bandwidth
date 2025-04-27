@@ -39,13 +39,11 @@ async function fetchSpeedTestData(filters: FetchFilters): Promise<{error: string
     
     let fullQuery = query;
     
-    // Add providers
     if (providers && providers.length > 0) {
         const providersQuery = providers.map(p => `providers=${encodeURIComponent(p)}`).join('&');
         fullQuery = fullQuery ? `${fullQuery}&${providersQuery}` : providersQuery;
     }
     
-    // Add servers
     if (servers && servers.length > 0) {
         const serversQuery = servers.map(s => `servers=${encodeURIComponent(s)}`).join('&');
         fullQuery = fullQuery ? `${fullQuery}&${serversQuery}` : serversQuery;

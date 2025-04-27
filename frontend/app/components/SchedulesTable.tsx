@@ -28,7 +28,6 @@ export default function SchedulesTable() {
                 providers: [providerName]
             };
             
-            // Add host endpoint and port for iperf3 tests
             if (providerName === 'iperf3' && hostEndpoint && hostPort) {
                 requestBody.hostEndpoint = hostEndpoint;
                 requestBody.hostPort = hostPort;
@@ -81,7 +80,6 @@ export default function SchedulesTable() {
 
             if (!response.ok) throw new Error('Failed to update schedule');
             
-            // Refresh schedules after update
             await fetchSchedules();
         } catch (err) {
             setError(`Failed to update schedule: ${err}`);
