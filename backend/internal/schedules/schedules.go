@@ -45,7 +45,7 @@ func listSchedules(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	rows, err := database.DB.Query(ctx, `
 		SELECT s.id, s.name, s.cron_expression, s.provider_id, s.provider_name, 
-		       s.is_active, s.created_at, s.updated_at, s.host_endpoint, s.host_port
+					 s.is_active, s.created_at, s.updated_at, s.host_endpoint, s.host_port
 		FROM schedules s 
 		ORDER BY s.created_at DESC
 	`)
@@ -150,7 +150,7 @@ func createSchedule(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Restart cron jobs after creating a new schedule
+	// Restart cron jobs after creation to load the new schedule into the cron scheduler
 	go RestartCronJobs()
 
 	w.WriteHeader(http.StatusCreated)
@@ -189,7 +189,7 @@ func updateSchedule(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Restart cron jobs after updating a schedule
+	// Restart cron jobs after updating to load the new schedule into the cron scheduler
 	go RestartCronJobs()
 
 	w.WriteHeader(http.StatusOK)
@@ -216,27 +216,23 @@ func deleteSchedule(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Restart cron jobs after deleting a schedule
+	// Restart cron jobs after deletion to remove the schedule from the cron scheduler
 	go RestartCronJobs()
 
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// RestartCronJobs stops the current cron scheduler and starts a new one with updated schedules
 func RestartCronJobs() {
 	cronMutex.Lock()
 	defer cronMutex.Unlock()
 
-	// Stop the existing cron scheduler if it exists
 	if cronScheduler != nil {
 		cronScheduler.Stop()
 	}
 
-	// Start a new cron scheduler
 	loadCronJobsInternal()
 }
 
-// LoadCronJobs initializes the cron scheduler
 func LoadCronJobs() {
 	cronMutex.Lock()
 	defer cronMutex.Unlock()
@@ -249,7 +245,6 @@ func LoadCronJobs() {
 func loadCronJobsInternal() {
 	cronScheduler = cron.New()
 
-	// Get all active schedules from the database
 	ctx := context.Background()
 	rows, err := database.DB.Query(ctx, `
 		SELECT id, name, cron_expression, provider_id, provider_name, host_endpoint, host_port
@@ -292,13 +287,11 @@ func loadCronJobsInternal() {
 		func(s models.Schedule) {
 			_, err := cronScheduler.AddFunc(s.CronExpression, func() {
 
-				// Create a slice of providers to test
 				var providers []string
 				if s.ProviderName != "" {
 					providers = []string{s.ProviderName}
 				}
 
-				// Run the speed test
 				ctx := context.Background()
 				go func() {
 					fmt.Printf("Starting speed test for schedule %s with provider %s\n", s.Name, s.ProviderName)
@@ -320,7 +313,6 @@ func loadCronJobsInternal() {
 		fmt.Printf("Error iterating schedules: %v\n", err)
 	}
 
-	// Start the cron scheduler
 	cronScheduler.Start()
 	fmt.Println("Cron scheduler started")
 }

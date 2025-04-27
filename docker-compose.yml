@@ -5,6 +5,10 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      x-bake:
+        platforms:
+          - linux/amd64
+          - linux/arm64
     container_name: botb-frontend
     env_file: 
       - path: .env
@@ -27,6 +31,10 @@ services:
       context: ./backend
       dockerfile: Dockerfile
       target: production
+      x-bake:
+        platforms:
+          - linux/amd64
+          - linux/arm64
     container_name: botb-backend
     env_file: 
       - path: .env
@@ -51,6 +59,10 @@ services:
       context: ./backend-node
       dockerfile: Dockerfile
       target: production
+      x-bake:
+        platforms:
+          - linux/amd64
+          - linux/arm64
     env_file: 
       - path: .env
         required: false
@@ -81,7 +93,6 @@ services:
       timeout: 2s
     volumes:
       - db_data:/var/lib/postgresql/data
-      - ./backend/internal/database/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
     restart: always
 
 volumes:

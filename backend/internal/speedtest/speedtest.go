@@ -34,10 +34,10 @@ func getSpeedTests(w http.ResponseWriter, r *http.Request) {
 
 	startDate := r.URL.Query().Get("startDate")
 	endDate := r.URL.Query().Get("endDate")
-	serverNames := r.URL.Query()["server"] // Get all server values as an array
+	serverNames := r.URL.Query()["server"]
 	limitStr := r.URL.Query().Get("limit")
 	offsetStr := r.URL.Query().Get("offset")
-	providers := r.URL.Query()["providers"] // Get all providers values
+	providers := r.URL.Query()["providers"]
 
 	limit := 20
 	offset := 0
@@ -97,19 +97,16 @@ func storeResult(ctx context.Context, result models.SpeedTestResult, rawResult s
 }
 
 func RunSpeedTests(ctx context.Context, requestData models.SpeedTestRequest) {
-	// If no providers specified, use librespeed as default
 	if len(requestData.Providers) == 0 {
 		requestData.Providers = []string{"librespeed"}
 	}
 
 	for _, providerName := range requestData.Providers {
-		// Skip if context is canceled
 		if ctx.Err() != nil {
 			log.Printf("Context canceled, stopping speed tests")
 			return
 		}
 
-		// Get provider ID from database
 		var providerID string
 		err := database.DB.QueryRow(ctx, "SELECT id FROM providers WHERE name = $1", providerName).Scan(&providerID)
 		if err != nil {
@@ -119,7 +116,6 @@ func RunSpeedTests(ctx context.Context, requestData models.SpeedTestRequest) {
 
 		log.Printf("Running speed test with provider: %s", providerName)
 
-		// Run the appropriate test based on provider
 		if providerName == "librespeed" {
 			runLibrespeedTest(ctx, providerID, providerName)
 		} else if providerName == "cloudflare" {
@@ -160,7 +156,6 @@ func runLibrespeedTest(ctx context.Context, providerID, providerName string) {
 			return
 		}
 
-		// Set the provider information
 		result.ProviderID = providerID
 		result.ProviderName = providerName
 
@@ -171,23 +166,19 @@ func runLibrespeedTest(ctx context.Context, providerID, providerName string) {
 }
 
 func runCloudflareTest(ctx context.Context, providerID, providerName string) {
-	// Get the Node.js backend URL from environment or use default
 	nodeBackendURL := os.Getenv("NODE_BACKEND_URL")
 	if nodeBackendURL == "" {
 		nodeBackendURL = "http://localhost:3000"
 	}
 
-	// Create HTTP request to the Node.js backend
 	req, err := http.NewRequestWithContext(ctx, "POST", nodeBackendURL+"/cloudflare/speed-test", nil)
 	if err != nil {
 		log.Printf("Error creating request to Node.js backend: %v", err)
 		return
 	}
 
-	// Set headers
 	req.Header.Set("Content-Type", "application/json")
 
-	// Create HTTP client and send request
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -196,20 +187,17 @@ func runCloudflareTest(ctx context.Context, providerID, providerName string) {
 	}
 	defer resp.Body.Close()
 
-	// Read response body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Printf("Error reading response from Node.js backend: %v", err)
 		return
 	}
 
-	// Check if response is successful
 	if !(resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusCreated) {
 		log.Printf("Node.js backend returned non-OK status: %d, body: %s", resp.StatusCode, string(body))
 		return
 	}
 
-	// Parse response
 	var cloudflareResult struct {
 		Status   string  `json:"status"`
 		Download float64 `json:"download"`
@@ -221,13 +209,11 @@ func runCloudflareTest(ctx context.Context, providerID, providerName string) {
 		return
 	}
 
-	// Check if test is still running
 	if cloudflareResult.Status == "running" {
 		log.Printf("Cloudflare speed test is already running")
 		return
 	}
 
-	// Create a SpeedTestResult from the Cloudflare result
 	timestamp := time.Now().Format(time.RFC3339)
 	result := models.SpeedTestResult{
 		Timestamp: timestamp,
@@ -252,10 +238,10 @@ func runCloudflareTest(ctx context.Context, providerID, providerName string) {
 			// Client info is not provided by Cloudflare speed test
 			// These fields will be empty
 		},
-		BytesSent:     0, // Not provided by Cloudflare
-		BytesReceived: 0, // Not provided by Cloudflare
+		BytesSent:     0,
+		BytesReceived: 0,
 		Ping:          cloudflareResult.Latency,
-		Jitter:        0, // Not provided by Cloudflare
+		Jitter:        0,
 		Upload:        cloudflareResult.Upload,
 		Download:      cloudflareResult.Download,
 		Share:         "",
@@ -263,7 +249,6 @@ func runCloudflareTest(ctx context.Context, providerID, providerName string) {
 		ProviderName:  providerName,
 	}
 
-	// Store the result
 	rawResult, _ := json.Marshal(cloudflareResult)
 	if err := storeResult(ctx, result, string(rawResult)); err != nil {
 		log.Printf("Error storing Cloudflare result: %v", err)
@@ -271,6 +256,7 @@ func runCloudflareTest(ctx context.Context, providerID, providerName string) {
 }
 
 func runIperf3Test(ctx context.Context, providerID, providerName, hostEndpoint, hostPort string) {
+	timestamp := time.Now().Format(time.RFC3339)
 	cmd := exec.CommandContext(ctx, "iperf3", "-c", hostEndpoint, "-p", hostPort, "--json")
 	output, err := cmd.Output()
 	if err != nil {
@@ -293,6 +279,7 @@ func runIperf3Test(ctx context.Context, providerID, providerName, hostEndpoint, 
 	}
 
 	result := iperf3Result.ToSpeedTestResult(providerID, providerName)
+	result.Timestamp = timestamp
 
 	cmd = exec.CommandContext(ctx, "ping", "-c", "10", hostEndpoint)
 	output, err = cmd.Output()
@@ -376,7 +363,6 @@ func fetchFilteredResults(ctx context.Context, startDate, endDate string, server
 		query += fmt.Sprintf(" AND (provider_id IN (%s))", strings.Join(placeholders, ", "))
 	}
 
-	// Add ordering, limit and offset
 	query += " ORDER BY timestamp DESC LIMIT $" + strconv.Itoa(paramIndex) + " OFFSET $" + strconv.Itoa(paramIndex+1)
 	args = append(args, limit, offset)
 
@@ -419,14 +405,11 @@ func startSpeedTest(w http.ResponseWriter, r *http.Request) {
 		HostPort     string   `json:"hostPort"`
 	}
 
-	// Default to librespeed if no providers specified
 	requestData.Providers = []string{"librespeed"}
 
-	// Parse request body if it exists
 	if r.Body != nil {
 		decoder := json.NewDecoder(r.Body)
 		if err := decoder.Decode(&requestData); err != nil {
-			// If there's an error parsing, just use the default provider
 			log.Printf("Error parsing request body: %v", err)
 		}
 	}

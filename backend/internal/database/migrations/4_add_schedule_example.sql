@@ -1,0 +1,2 @@
+INSERT INTO schedules (name, cron_expression, is_active, provider_id, provider_name) 
+VALUES ('Daily Cloudflare Test', '30 6 * * *', false, (SELECT id FROM providers WHERE name = 'cloudflare'), 'cloudflare');

@@ -13,30 +13,21 @@ func main() {
 	if err := database.InitDB(); err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
+
+	if err := database.VerifyMetadata(); err != nil {
+		log.Fatalf("Failed to verify database metadata: %v", err)
+	}
+
 	if err := database.MigrateDB(); err != nil {
 		log.Fatalf("Failed to migrate database: %v", err)
 	}
-	defer database.CloseDB() // Ensure the database connection is closed on exit
+	defer database.CloseDB()
 
-	routes.SetupRoutes() // Set up the routes
+	routes.SetupRoutes()
 
-	// Load and start cron jobs for scheduled speed tests
 	schedules.LoadCronJobs()
 
 	log.Println("Starting server on :8080")
-
-	// loadCronCommand := exec.Command("crontab", "/etc/cron.d/schedules")
-	// err := loadCronCommand.Start()
-	// if err != nil {
-	// 	fmt.Print("Error:", err)
-	// 	return
-	// }
-	// startCronCommand := exec.Command("cron", "-f", "&")
-	// err = startCronCommand.Start()
-	// if err != nil {
-	// 	fmt.Print("Error:", err)
-	// 	return
-	// }
 
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatal(err)

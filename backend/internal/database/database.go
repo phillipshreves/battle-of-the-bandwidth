@@ -18,12 +18,6 @@ func InitDB() error {
 	dbUser := os.Getenv("DB_USER")
 	dbPassword := os.Getenv("DB_PASSWORD")
 	dbName := os.Getenv("DB_NAME")
-	//Parameters for testing locally
-	//dbHost := "127.0.0.1"
-	//dbPort := "5432"
-	//dbUser := "postgres"
-	//dbPassword := "postgres"
-	//dbName := "botb"
 
 	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?pool_max_conns=10",
 		dbUser, dbPassword, dbHost, dbPort, dbName)
@@ -35,7 +29,6 @@ func InitDB() error {
 			return fmt.Errorf("unable to parse connection string: %w", err)
 		}
 
-		// Set reasonable timeouts
 		config.MaxConnLifetime = time.Hour
 		config.MaxConnIdleTime = 30 * time.Minute
 		config.HealthCheckPeriod = 1 * time.Minute

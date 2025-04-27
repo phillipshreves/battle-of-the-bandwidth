@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -31,6 +32,7 @@ var migrationsDir embed.FS
 
 func getCurrentVersion(ctx context.Context) (int, error) {
 	var version int
+
 	err := DB.QueryRow(ctx, "SELECT version FROM database_metadata").Scan(&version)
 	if err != nil {
 		return 0, fmt.Errorf("failed to get database version: %w", err)
@@ -158,7 +160,7 @@ func MigrateDB() error {
 
 	migrationApplied := false
 	for _, m := range migrations {
-		if m.version < currentVersion {
+		if m.version <= currentVersion {
 			continue
 		}
 
@@ -173,6 +175,44 @@ func MigrateDB() error {
 	if migrationApplied {
 		newVersion, _ := getCurrentVersion(ctx)
 		fmt.Println("New schema version:", newVersion)
+	}
+
+	return nil
+}
+
+// VerifyMetadata checks if the database_metadata table exists and initializes it if not
+func VerifyMetadata() error {
+	ctx := context.Background()
+
+	var exists bool
+	err := DB.QueryRow(ctx, `
+		SELECT EXISTS (
+			SELECT FROM information_schema.tables 
+			WHERE table_schema = 'public' 
+			AND table_name = 'database_metadata'
+		)
+	`).Scan(&exists)
+
+	if err != nil {
+		return fmt.Errorf("failed to check for database_metadata table: %w", err)
+	}
+
+	if !exists {
+		log.Println("database_metadata table does not exist, initializing...")
+
+		initScriptBytes, err := fs.ReadFile(migrationsDir, filepath.Join("migrations", "1_init_metadata.sql"))
+		if err != nil {
+			return fmt.Errorf("failed to read 1_init_metadata.sql: %w", err)
+		}
+
+		_, err = DB.Exec(ctx, string(initScriptBytes))
+		if err != nil {
+			return fmt.Errorf("failed to initialize database_metadata: %w", err)
+		}
+
+		log.Println("Successfully initialized database_metadata table")
+	} else {
+		log.Println("database_metadata table already exists")
 	}
 
 	return nil

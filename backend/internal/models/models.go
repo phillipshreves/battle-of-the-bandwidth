@@ -183,9 +183,7 @@ type Iperf3Result struct {
 	} `json:"end"`
 }
 
-// ToSpeedTestResult converts an Iperf3Result to a SpeedTestResult
 func (i *Iperf3Result) ToSpeedTestResult(providerID, providerName string) SpeedTestResult {
-	// Use the remote host as the server name
 	serverName := ""
 	serverURL := ""
 	if len(i.Start.Connected) > 0 {
@@ -193,14 +191,12 @@ func (i *Iperf3Result) ToSpeedTestResult(providerID, providerName string) SpeedT
 		serverURL = fmt.Sprintf("%s:%d", i.Start.Connected[0].RemoteHost, i.Start.Connected[0].RemotePort)
 	}
 
-	// Get the local client info
 	clientIP := ""
 	clientHostname := ""
 	if len(i.Start.Connected) > 0 {
 		clientIP = i.Start.Connected[0].LocalHost
 	}
 
-	// Get client hostname from system_info if available
 	parts := strings.Split(i.Start.SystemInfo, " ")
 	if len(parts) > 1 {
 		clientHostname = parts[1]
@@ -213,7 +209,6 @@ func (i *Iperf3Result) ToSpeedTestResult(providerID, providerName string) SpeedT
 	download := i.End.SumReceived.BitsPerSecond / 1000000 // Convert to Mbps
 
 	return SpeedTestResult{
-		Timestamp: time.Now().Format(time.RFC3339),
 		Server: struct {
 			Name string `json:"name"`
 			URL  string `json:"url"`
@@ -234,12 +229,11 @@ func (i *Iperf3Result) ToSpeedTestResult(providerID, providerName string) SpeedT
 		}{
 			IP:       clientIP,
 			Hostname: clientHostname,
-			// Other fields remain empty as iperf3 doesn't provide this information
 		},
 		BytesSent:     i.End.SumSent.Bytes,
 		BytesReceived: i.End.SumReceived.Bytes,
 		Ping:          0,
-		Jitter:        0, // iperf3 doesn't provide jitter information
+		Jitter:        0,
 		Upload:        upload,
 		Download:      download,
 		Share:         "",
