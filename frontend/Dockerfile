@@ -15,7 +15,7 @@ RUN npm run build
 FROM node:18-alpine AS runner
 WORKDIR /app
 
-ENV NODE_ENV production
+ENV NODE_ENV=production
 ENV TZ=Etc/UTC
 ENV CRON_TZ=Etc/UTC
 

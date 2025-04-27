@@ -17,7 +17,7 @@ COPY --chown=node:node ./package*.json  ./
 COPY --chown=node:node --from=development /app/src/node_modules ./node_modules
 COPY --chown=node:node . .
 RUN npm run build
-ENV NODE_ENV production
+ENV NODE_ENV=production
 RUN npm ci --omit=dev && npm cache clean --force
 USER node
 
