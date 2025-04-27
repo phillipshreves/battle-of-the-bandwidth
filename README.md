@@ -63,7 +63,7 @@ Access the web application at http://localhost:40080/
 
 ### Running Speed Tests
 
-- **Manual Test:** Click the "Run Speed Test Now" button
+- **Manual Test:** Click the "Run Now" button on a schedule
 - **Scheduled Tests:** Configure automated tests using the "Add Schedule" button
 
 ### Data Analysis
@@ -82,6 +82,7 @@ The Schedules table displays your configured automated tests:
 
 #### Schedule Controls
 
+- **Run Now**: Click "Run Now" to start the speed test using the schedule's provider setup
 - **Create**: Click "Add Schedule" to create a new scheduled test
 - **Edit**: Click the edit icon on any schedule row to modify its settings
 - **Delete**: Click the delete icon to remove a schedule
