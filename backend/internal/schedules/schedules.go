@@ -139,11 +139,25 @@ func createSchedule(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Handle null/empty values for host fields
+	var hostEndpoint, hostPort interface{}
+	if s.HostEndpoint != "" {
+		hostEndpoint = s.HostEndpoint
+	} else {
+		hostEndpoint = nil
+	}
+
+	if s.HostPort != "" {
+		hostPort = s.HostPort
+	} else {
+		hostPort = nil
+	}
+
 	err := database.DB.QueryRow(ctx, `
 		INSERT INTO schedules (name, cron_expression, provider_id, provider_name, is_active, host_endpoint, host_port)
 		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		RETURNING id, created_at, updated_at
-	`, s.Name, s.CronExpression, s.ProviderID, s.ProviderName, s.IsActive, s.HostEndpoint, s.HostPort).Scan(&s.ID, &s.CreatedAt, &s.UpdatedAt)
+	`, s.Name, s.CronExpression, s.ProviderID, s.ProviderName, s.IsActive, hostEndpoint, hostPort).Scan(&s.ID, &s.CreatedAt, &s.UpdatedAt)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -171,12 +185,26 @@ func updateSchedule(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Handle null/empty values for host fields
+	var hostEndpoint, hostPort interface{}
+	if s.HostEndpoint != "" {
+		hostEndpoint = s.HostEndpoint
+	} else {
+		hostEndpoint = nil
+	}
+
+	if s.HostPort != "" {
+		hostPort = s.HostPort
+	} else {
+		hostPort = nil
+	}
+
 	result, err := database.DB.Exec(ctx, `
 		UPDATE schedules 
 		SET name = $1, cron_expression = $2, provider_id = $3, provider_name = $4, is_active = $5, host_endpoint = $6, host_port = $7,
 		    updated_at = CURRENT_TIMESTAMP
 		WHERE id = $8
-	`, s.Name, s.CronExpression, s.ProviderID, s.ProviderName, s.IsActive, s.HostEndpoint, s.HostPort, id)
+	`, s.Name, s.CronExpression, s.ProviderID, s.ProviderName, s.IsActive, hostEndpoint, hostPort, id)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
