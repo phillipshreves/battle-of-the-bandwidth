@@ -4,11 +4,6 @@ import { useState, useEffect } from 'react';
 import { Schedule } from '@/types/types';
 import { useRouter } from 'next/navigation';
 
-interface Provider {
-    id: string;
-    name: string;
-}
-
 export default function SchedulesTable() {
     const router = useRouter();
     const [schedules, setSchedules] = useState<Schedule[]>([]);
@@ -16,52 +11,43 @@ export default function SchedulesTable() {
     const [success, setSuccess] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState<string | null>(null);
-    const [providers, setProviders] = useState<Provider[]>([]);
-    const [selectedProvider, setSelectedProvider] = useState<string>('');
-    const [loadingProviders, setLoadingProviders] = useState(true);
+    const [runningTest, setRunningTest] = useState<string | null>(null);
 
     useEffect(() => {
         fetchSchedules();
-        fetchProviders();
     }, []);
 
-    const runSpeedTestNow = async () => {
+    const runSpeedTestNow = async (providerId: string, providerName: string, hostEndpoint?: string, hostPort?: string) => {
+        setRunningTest(providerId);
         try {
-            // Use the selected provider or default to librespeed if none selected
-            const providerToUse = selectedProvider ? 
-                providers.find(p => p.id === selectedProvider)?.name : 'librespeed';
+            const requestBody: {
+                providers: string[];
+                hostEndpoint?: string;
+                hostPort?: string;
+            } = {
+                providers: [providerName]
+            };
+            
+            // Add host endpoint and port for iperf3 tests
+            if (providerName === 'iperf3' && hostEndpoint && hostPort) {
+                requestBody.hostEndpoint = hostEndpoint;
+                requestBody.hostPort = hostPort;
+            }
             
             const response = await fetch('/api/speedtest', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    providers: [providerToUse]
-                }),
+                body: JSON.stringify(requestBody),
             });
             if (!response.ok) throw new Error('Failed to run speed test');
-            setSuccess('Speed test started successfully');
+            setSuccess(`Speed test started successfully for ${providerName}`);
             setTimeout(() => setSuccess(null), 5000);
         } catch (err) {
             setError(`Failed to run speed test: ${err}`);
-        }
-    };
-
-    const fetchProviders = async () => {
-        try {
-            const response = await fetch('/api/providers');
-            if (!response.ok) throw new Error('Failed to fetch providers');
-            const data = await response.json();
-            setProviders(data.data || []);
-            // Set the first provider as default if available
-            if (data.data && data.data.length > 0) {
-                setSelectedProvider(data.data[0].id);
-            }
-        } catch (err) {
-            console.error('Error loading providers:', err);
         } finally {
-            setLoadingProviders(false);
+            setRunningTest(null);
         }
     };
 
@@ -128,32 +114,6 @@ export default function SchedulesTable() {
             <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
                 <h2 className="text-2xl font-bold">Scheduled Tests</h2>
                 <div className="flex flex-col sm:flex-row items-center gap-4">
-                    {/* Speed Test Group */}
-                    <div className="flex w-full sm:w-auto items-stretch bg-slate-700 rounded-lg overflow-hidden border border-slate-600 shadow-sm">
-                        {loadingProviders ? (
-                            <div className="text-sm text-slate-400 px-3 py-2">Loading providers...</div>
-                        ) : (
-                            <select
-                                value={selectedProvider}
-                                onChange={(e) => setSelectedProvider(e.target.value)}
-                                className="py-2 pl-3 pr-8 bg-slate-700 border-r border-slate-600 focus:outline-none text-sm"
-                                aria-label="Select provider"
-                            >
-                                {providers.map((provider) => (
-                                    <option key={provider.id} value={provider.id}>
-                                        {provider.name}
-                                    </option>
-                                ))}
-                            </select>
-                        )}
-                        <button
-                            onClick={runSpeedTestNow}
-                            className="px-4 py-2 bg-primary text-white hover:bg-primary/80 flex-shrink-0 whitespace-nowrap"
-                        >
-                            Run Speed Test Now
-                        </button>
-                    </div>
-                    
                     {/* Add Schedule Button */}
                     <button
                         onClick={() => router.push('/schedules/create')}
@@ -179,18 +139,41 @@ export default function SchedulesTable() {
                     <table className="min-w-full bg-slate-800 rounded-lg overflow-hidden">
                         <thead className="bg-slate-700">
                             <tr>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Actions</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Name</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Schedule</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Provider</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Host Info</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Status</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-700">
                             {schedules.map((schedule) => (
                                 <tr key={schedule.id}>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                        <button
+                                            onClick={() => runSpeedTestNow(
+                                                schedule.id, 
+                                                schedule.provider_name,
+                                                schedule.host_endpoint,
+                                                schedule.host_port
+                                            )}
+                                            disabled={runningTest === schedule.id}
+                                            className="px-3 py-1 bg-primary text-white rounded hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            {runningTest === schedule.id ? 'Running...' : 'Run Now'}
+                                        </button>
+                                    </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm">{schedule.name}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm">{schedule.cron_expression}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm">{schedule.provider_name}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                        {schedule.provider_name === 'iperf3' && schedule.host_endpoint ? (
+                                            `${schedule.host_endpoint}:${schedule.host_port || 'default'}`
+                                        ) : (
+                                            '-'
+                                        )}
+                                    </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                                         <div className="flex items-center space-x-2">
                                             <button

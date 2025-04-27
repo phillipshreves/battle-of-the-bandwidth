@@ -185,10 +185,6 @@ type Iperf3Result struct {
 
 // ToSpeedTestResult converts an Iperf3Result to a SpeedTestResult
 func (i *Iperf3Result) ToSpeedTestResult(providerID, providerName string) SpeedTestResult {
-	// Create timestamp in RFC3339 format
-	timestampTime := time.Unix(i.Start.Timestamp.TimeSecs, 0)
-	timestamp := timestampTime.Format(time.RFC3339)
-
 	// Use the remote host as the server name
 	serverName := ""
 	serverURL := ""
@@ -217,7 +213,7 @@ func (i *Iperf3Result) ToSpeedTestResult(providerID, providerName string) SpeedT
 	download := i.End.SumReceived.BitsPerSecond / 1000000 // Convert to Mbps
 
 	return SpeedTestResult{
-		Timestamp: timestamp,
+		Timestamp: time.Now().Format(time.RFC3339),
 		Server: struct {
 			Name string `json:"name"`
 			URL  string `json:"url"`

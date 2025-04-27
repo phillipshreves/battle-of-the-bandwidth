@@ -26,6 +26,12 @@ interface ServerResponse {
     share: string;
 }
 
+interface SpeedTestRequestBody {
+    providers?: string[];
+    hostEndpoint?: string;
+    hostPort?: string;
+}
+
 const backendUrl = process.env.BACKEND_URL || 'http://localhost:8080';
 
 export async function GET(request: Request) {
@@ -76,24 +82,34 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
     // Handle POST request to run the speed test
     try {
-        // Get providers from request body if available
+        // Get providers and host information from request body if available
         let providers: string[] | undefined;
+        let hostEndpoint: string | undefined;
+        let hostPort: string | undefined;
         
         try {
             const body = await request.json();
             providers = body.providers;
+            hostEndpoint = body.hostEndpoint;
+            hostPort = body.hostPort;
         } catch (error) {
             // If there's no body or it can't be parsed, continue without providers
             console.log('No providers specified in request body');
             console.log(error);
         }
         
+        // Prepare request body with all parameters
+        const requestBody: SpeedTestRequestBody = {};
+        if (providers) requestBody.providers = providers;
+        if (hostEndpoint) requestBody.hostEndpoint = hostEndpoint;
+        if (hostPort) requestBody.hostPort = hostPort;
+        
         const response = await fetch(`${backendUrl}/api/speedtest`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: providers ? JSON.stringify({ providers }) : undefined,
+            body: JSON.stringify(requestBody),
         });
 
         if (!response.ok) {
