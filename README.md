@@ -28,7 +28,21 @@ All containerized for your deployment pleasure. An example docker-compose.yml fi
 
 ## Installation
 
-### Using Docker
+### Using Docker Compose
+
+#### Prebuilt Images
+
+I've prebuilt multiple architecture images and pushed to Docker Hub. You can simply setup a docker-compose.yml file to download and run these images.
+
+Copy the [docker-compose.yml](docker-compose.yml) file in this repository to your local computer, then from the same directory, run:
+
+```bash
+docker compose up -d
+```
+
+#### Build Images
+
+If you'd like to build the docker images yourself:
 
 ```bash
 # Clone the repository
@@ -37,8 +51,8 @@ git clone https://github.com/phillipshreves/battle-of-the-bandwidth.git
 # Navigate to project directory
 cd battle-of-the-bandwidth
 
-# Start the application using Docker Compose
-docker compose up -d
+# Build and start the application using Docker Compose
+docker compose up -d --build
 ```
 
 ## Usage
