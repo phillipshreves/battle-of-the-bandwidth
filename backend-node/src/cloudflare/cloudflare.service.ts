@@ -1,15 +1,41 @@
 import { Injectable } from '@nestjs/common';
-import SpeedTestEngine from '@cloudflare/speedtest';
+
+// We'll use dynamic import for the SpeedTestEngine
+let SpeedTestEngine;
 
 @Injectable()
 export class CloudflareService {
-  speedTestEngine = new SpeedTestEngine({
-    autoStart: false,
-    measureDownloadLoadedLatency: false,
-    measureUploadLoadedLatency: false,
-  });
+  private speedTestEngine;
+  private engineInitialized = false;
+
+  constructor() {
+    this.initSpeedTestEngine();
+  }
+
+  private async initSpeedTestEngine() {
+    try {
+      const module = await import('@cloudflare/speedtest');
+      SpeedTestEngine = module.default;
+      
+      this.speedTestEngine = new SpeedTestEngine({
+        autoStart: false,
+        measureDownloadLoadedLatency: false,
+        measureUploadLoadedLatency: false,
+      });
+      this.engineInitialized = true;
+    } catch (error) {
+      console.error('Failed to initialize SpeedTestEngine:', error);
+    }
+  }
 
   async runSpeedTest() {
+    if (!this.engineInitialized) {
+      await this.initSpeedTestEngine();
+      if (!this.engineInitialized) {
+        return Promise.reject({ status: 'failed to initialize' });
+      }
+    }
+
     return new Promise((resolve, reject) => {
       if (this.speedTestEngine.isRunning) {
         reject({ status: 'running' });

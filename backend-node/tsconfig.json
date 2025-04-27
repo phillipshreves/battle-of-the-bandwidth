@@ -16,12 +16,6 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
-  },
-  "watchOptions": {
-    "fallbackPolling": "dynamicPriority",
-    "excludeDirectories": [
-      "**/node_modules"
-    ]
+    "noFallthroughCasesInSwitch": false,
   }
 }
