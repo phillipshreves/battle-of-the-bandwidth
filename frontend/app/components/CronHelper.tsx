@@ -17,7 +17,7 @@ export default function CronHelper({ onSelect }: CronHelperProps) {
 
     return (
         <div className="mt-2">
-            <label className="block text-sm font-medium mb-2 text-slate-300">
+            <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-slate-300">
                 Common Schedules
             </label>
             <div className="grid grid-cols-1 gap-2">
@@ -26,14 +26,14 @@ export default function CronHelper({ onSelect }: CronHelperProps) {
                         key={expression}
                         type="button"
                         onClick={() => onSelect(expression)}
-                        className="text-left px-3 py-2 text-sm bg-slate-700 hover:bg-slate-600 rounded-md transition-colors"
+                        className="text-left px-3 py-2 text-sm bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-md transition-colors"
                     >
-                        <div className="font-medium">{label}</div>
-                        <div className="text-slate-400 text-xs">{expression}</div>
+                        <div className="font-medium text-gray-900 dark:text-white">{label}</div>
+                        <div className="text-gray-500 dark:text-slate-400 text-xs">{expression}</div>
                     </button>
                 ))}
             </div>
-            <div className="mt-4 text-sm text-slate-400">
+            <div className="mt-4 text-sm text-gray-500 dark:text-slate-400">
                 <p className="font-medium mb-1">Cron Format:</p>
                 <p className="mb-2">minute hour day month weekday</p>
                 <ul className="list-disc list-inside space-y-1">

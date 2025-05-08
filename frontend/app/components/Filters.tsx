@@ -89,7 +89,7 @@ export default function Filters({
                                     placeholder="Start Date"
                                     className="w-full px-4 py-2 rounded-lg bg-background/80 border border-secondary/20
                                     focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none
-                                    transition-colors duration-200 text-background"
+                                    transition-colors duration-200 text-secondary"
                                     value={dateRange[0] || ''}
                                     onChange={(e) => onDateChange(0, e.target.value)}
                                 />
@@ -100,7 +100,7 @@ export default function Filters({
                                     placeholder="End Date"
                                     className="w-full px-4 py-2 rounded-lg bg-background/80 border border-secondary/20
                                     focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none
-                                    transition-colors duration-200 text-background"
+                                    transition-colors duration-200 text-secondary"
                                     value={dateRange[1] || ''}
                                     onChange={(e) => onDateChange(1, e.target.value)}
                                 />
@@ -159,7 +159,7 @@ export default function Filters({
                             type="number"
                             className="flex-1 px-4 py-2 rounded-lg bg-background/80 border border-secondary/20
                             focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none
-                            transition-colors duration-200 text-background"
+                            transition-colors duration-200 text-secondary"
                             value={limit}
                             onChange={(e) => onLimitChange(e.target.value)}
                         />
