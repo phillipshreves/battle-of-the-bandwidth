@@ -9,6 +9,9 @@ services:
         platforms:
           - linux/amd64
           - linux/arm64
+        tags:
+          - docker.io/phillipshreves/botb-frontend:latest
+          - docker.io/phillipshreves/botb-frontend:v1.1.0
     container_name: botb-frontend
     env_file: 
       - path: .env
@@ -35,6 +38,9 @@ services:
         platforms:
           - linux/amd64
           - linux/arm64
+        tags:
+          - docker.io/phillipshreves/botb-backend:latest
+          - docker.io/phillipshreves/botb-backend:v1.1.0
     container_name: botb-backend
     env_file: 
       - path: .env
@@ -63,6 +69,9 @@ services:
         platforms:
           - linux/amd64
           - linux/arm64
+        tags:
+          - docker.io/phillipshreves/botb-backend-node:latest
+          - docker.io/phillipshreves/botb-backend-node:v1.1.0
     env_file: 
       - path: .env
         required: false
