@@ -90,7 +90,6 @@ The Schedules table displays your configured automated tests:
 - **Edit**: Click the edit icon on any schedule row to modify its settings
 - **Delete**: Click the delete icon to remove a schedule
 - **Enable/Disable**: Toggle the status switch to pause or resume a schedule without deleting it
-- **Result Limit**: Set the maximum number of results to keep for each schedule. When this limit is reached, older results will be automatically deleted to maintain the specified limit. Set to 0 for unlimited results.
 
 #### Cron Expressions:
 Schedules use standard cron syntax (e.g., `0 */6 * * *` for every 6 hours). The application supports:
