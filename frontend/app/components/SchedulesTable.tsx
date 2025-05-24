@@ -104,7 +104,7 @@ export default function SchedulesTable() {
     }
 
     return (
-        <div className="p-6 bg-white dark:bg-slate-800 rounded-lg shadow-lg max-w-4xl mx-auto mt-8">
+        <div className="p-6 bg-white dark:bg-slate-800 rounded-lg shadow-lg max-w-7xl mx-auto mt-8">
             {success && (
                 <div className="bg-green-500/10 border border-green-500 text-green-500 p-3 rounded mb-4">
                     {success}
