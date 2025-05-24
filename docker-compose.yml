@@ -1,7 +1,7 @@
 services:
   botb-frontend:
     image: phillipshreves/botb-frontend:latest
-    pull_policy: daily
+    pull_policy: missing
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -11,7 +11,7 @@ services:
           - linux/arm64
         tags:
           - docker.io/phillipshreves/botb-frontend:latest
-          - docker.io/phillipshreves/botb-frontend:v1.1.0
+          - docker.io/phillipshreves/botb-frontend:1.1.0
     container_name: botb-frontend
     env_file: 
       - path: .env
@@ -29,7 +29,7 @@ services:
 
   botb-backend:
     image: phillipshreves/botb-backend:latest
-    pull_policy: daily
+    pull_policy: missing
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -40,7 +40,7 @@ services:
           - linux/arm64
         tags:
           - docker.io/phillipshreves/botb-backend:latest
-          - docker.io/phillipshreves/botb-backend:v1.1.0
+          - docker.io/phillipshreves/botb-backend:1.1.0
     container_name: botb-backend
     env_file: 
       - path: .env
@@ -59,7 +59,7 @@ services:
 
   botb-backend-node:
     image: phillipshreves/botb-backend-node:latest
-    pull_policy: daily
+    pull_policy: missing
     container_name: botb-backend-node
     build:
       context: ./backend-node
@@ -71,7 +71,7 @@ services:
           - linux/arm64
         tags:
           - docker.io/phillipshreves/botb-backend-node:latest
-          - docker.io/phillipshreves/botb-backend-node:v1.1.0
+          - docker.io/phillipshreves/botb-backend-node:1.1.0
     env_file: 
       - path: .env
         required: false
@@ -85,7 +85,7 @@ services:
 
   botb-db:
     image: postgres:13
-    pull_policy: daily
+    pull_policy: missing
     container_name: botb-db
     env_file: 
       - path: .env
