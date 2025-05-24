@@ -6,6 +6,8 @@ The application runs speed tests utilizing cron schedules and stores the result.
 
 ### Showcase
 
+I've recorded a video walkthrough, viewable here: [https://youtu.be/X-d04KZH0_I](https://youtu.be/X-d04KZH0_I)
+
 ![showcase-screenshot-01.png](showcase-screenshot-01.png)
 
 ### Architecture
