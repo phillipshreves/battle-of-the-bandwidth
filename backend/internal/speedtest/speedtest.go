@@ -2,6 +2,7 @@ package speedtest
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -65,6 +66,38 @@ func getSpeedTests(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func pruneOldResults(ctx context.Context, scheduleID string) error {
+	// Get the result limit for this schedule
+	var resultLimit int
+	err := database.DB.QueryRow(ctx, "SELECT result_limit FROM schedules WHERE id = $1", scheduleID).Scan(&resultLimit)
+	if err != nil {
+		return fmt.Errorf("failed to get result limit: %w", err)
+	}
+
+	// If result limit is 0, no pruning needed
+	if resultLimit == 0 {
+		return nil
+	}
+
+	// Delete excess results, keeping only the most recent ones up to the limit
+	_, err = database.DB.Exec(ctx, `
+		DELETE FROM speedtest_results
+		WHERE schedule_id = $1
+		AND id NOT IN (
+			SELECT id
+			FROM speedtest_results
+			WHERE schedule_id = $1
+			ORDER BY timestamp DESC
+			LIMIT $2
+		)`, scheduleID, resultLimit)
+
+	if err != nil {
+		return fmt.Errorf("failed to prune old results: %w", err)
+	}
+
+	return nil
+}
+
 func storeResult(ctx context.Context, result models.SpeedTestResult, rawResult string) error {
 	errCount := 0
 	errCountMax := 10
@@ -76,16 +109,24 @@ func storeResult(ctx context.Context, result models.SpeedTestResult, rawResult s
             raw_result, timestamp, server_name, server_url, 
             client_ip, client_hostname, client_city, client_region, client_country, client_loc, client_org, client_postal, client_timezone,
             bytes_sent, bytes_received, ping, jitter, upload, download, share,
-            provider_id, provider_name
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)`,
+            provider_id, provider_name, schedule_id
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)`,
 			rawResult, result.Timestamp, result.Server.Name, result.Server.URL,
 			result.Client.IP, result.Client.Hostname, result.Client.City, result.Client.Region, result.Client.Country, result.Client.Loc, result.Client.Org, result.Client.Postal, result.Client.Timezone,
 			result.BytesSent, result.BytesReceived, result.Ping, result.Jitter, result.Upload, result.Download, result.Share,
-			result.ProviderID, result.ProviderName,
+			result.ProviderID, result.ProviderName, result.ScheduleID,
 		)
 
 		if err == nil {
 			log.Printf("Successfully stored result for %s using provider %s", result.Timestamp, result.ProviderName)
+
+			// If this result is associated with a schedule, check and enforce the result limit
+			if result.ScheduleID != "" {
+				if err := pruneOldResults(ctx, result.ScheduleID); err != nil {
+					log.Printf("Warning: Failed to prune old results: %v", err)
+				}
+			}
+
 			return nil
 		}
 
@@ -114,21 +155,19 @@ func RunSpeedTests(ctx context.Context, requestData models.SpeedTestRequest) {
 			continue
 		}
 
-		log.Printf("Running speed test with provider: %s", providerName)
-
 		if providerName == "librespeed" {
-			runLibrespeedTest(ctx, providerID, providerName)
+			runLibrespeedTest(ctx, providerID, providerName, requestData.ScheduleID)
 		} else if providerName == "cloudflare" {
-			runCloudflareTest(ctx, providerID, providerName)
+			runCloudflareTest(ctx, providerID, providerName, requestData.ScheduleID)
 		} else if providerName == "iperf3" {
-			runIperf3Test(ctx, providerID, providerName, requestData.HostEndpoint, requestData.HostPort)
+			runIperf3Test(ctx, providerID, providerName, requestData.HostEndpoint, requestData.HostPort, requestData.ScheduleID)
 		} else {
 			log.Printf("Provider '%s' is not currently supported for testing", providerName)
 		}
 	}
 }
 
-func runLibrespeedTest(ctx context.Context, providerID, providerName string) {
+func runLibrespeedTest(ctx context.Context, providerID, providerName, scheduleID string) {
 	cmd := exec.CommandContext(ctx, "librespeed-cli", "--json")
 	output, err := cmd.Output()
 	if err != nil {
@@ -158,6 +197,7 @@ func runLibrespeedTest(ctx context.Context, providerID, providerName string) {
 
 		result.ProviderID = providerID
 		result.ProviderName = providerName
+		result.ScheduleID = scheduleID
 
 		if err := storeResult(ctx, result, string(output)); err != nil {
 			log.Printf("Error storing result: %v", err)
@@ -165,7 +205,7 @@ func runLibrespeedTest(ctx context.Context, providerID, providerName string) {
 	}
 }
 
-func runCloudflareTest(ctx context.Context, providerID, providerName string) {
+func runCloudflareTest(ctx context.Context, providerID, providerName, scheduleID string) {
 	nodeBackendURL := os.Getenv("NODE_BACKEND_URL")
 	if nodeBackendURL == "" {
 		nodeBackendURL = "http://localhost:3000"
@@ -247,6 +287,7 @@ func runCloudflareTest(ctx context.Context, providerID, providerName string) {
 		Share:         "",
 		ProviderID:    providerID,
 		ProviderName:  providerName,
+		ScheduleID:    scheduleID,
 	}
 
 	rawResult, _ := json.Marshal(cloudflareResult)
@@ -255,7 +296,7 @@ func runCloudflareTest(ctx context.Context, providerID, providerName string) {
 	}
 }
 
-func runIperf3Test(ctx context.Context, providerID, providerName, hostEndpoint, hostPort string) {
+func runIperf3Test(ctx context.Context, providerID, providerName, hostEndpoint, hostPort, scheduleID string) {
 	timestamp := time.Now().Format(time.RFC3339)
 	cmd := exec.CommandContext(ctx, "iperf3", "-c", hostEndpoint, "-p", hostPort, "--json")
 	output, err := cmd.Output()
@@ -280,6 +321,7 @@ func runIperf3Test(ctx context.Context, providerID, providerName, hostEndpoint, 
 
 	result := iperf3Result.ToSpeedTestResult(providerID, providerName)
 	result.Timestamp = timestamp
+	result.ScheduleID = scheduleID
 
 	cmd = exec.CommandContext(ctx, "ping", "-c", "10", hostEndpoint)
 	output, err = cmd.Output()
@@ -332,7 +374,7 @@ func fetchFilteredResults(ctx context.Context, startDate, endDate string, server
             client_city, client_region, client_country, client_loc, client_org,
             client_postal, client_timezone, bytes_sent, bytes_received, 
             ping, jitter, upload, download, share,
-            provider_id, provider_name
+            provider_id, provider_name, schedule_id
         FROM speedtest_results
         WHERE ($1::timestamptz IS NULL OR timestamp >= $1)
         AND ($2::timestamptz IS NULL OR timestamp <= $2)
@@ -376,18 +418,22 @@ func fetchFilteredResults(ctx context.Context, startDate, endDate string, server
 	for rows.Next() {
 		var result models.SpeedTestResult
 		var timestamp time.Time
+		var scheduleID sql.NullString
 
 		if err := rows.Scan(
 			&timestamp, &result.Server.Name, &result.Server.URL, &result.Client.IP, &result.Client.Hostname,
 			&result.Client.City, &result.Client.Region, &result.Client.Country, &result.Client.Loc, &result.Client.Org,
 			&result.Client.Postal, &result.Client.Timezone, &result.BytesSent, &result.BytesReceived,
 			&result.Ping, &result.Jitter, &result.Upload, &result.Download, &result.Share,
-			&result.ProviderID, &result.ProviderName,
+			&result.ProviderID, &result.ProviderName, &scheduleID,
 		); err != nil {
 			return nil, fmt.Errorf("failed to scan row: %w", err)
 		}
 
 		result.Timestamp = timestamp.Format(time.RFC3339)
+		if scheduleID.Valid {
+			result.ScheduleID = scheduleID.String
+		}
 		results = append(results, result)
 	}
 
@@ -399,13 +445,7 @@ func fetchFilteredResults(ctx context.Context, startDate, endDate string, server
 }
 
 func startSpeedTest(w http.ResponseWriter, r *http.Request) {
-	var requestData struct {
-		Providers    []string `json:"providers"`
-		HostEndpoint string   `json:"hostEndpoint"`
-		HostPort     string   `json:"hostPort"`
-	}
-
-	requestData.Providers = []string{"librespeed"}
+	var requestData models.SpeedTestRequest
 
 	if r.Body != nil {
 		decoder := json.NewDecoder(r.Body)

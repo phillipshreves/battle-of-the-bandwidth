@@ -46,4 +46,5 @@ export interface Schedule {
     updated_at: string;
     host_endpoint?: string;
     host_port?: string;
+    result_limit: number;
 }

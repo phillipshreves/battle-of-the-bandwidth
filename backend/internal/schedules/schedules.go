@@ -45,7 +45,7 @@ func listSchedules(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	rows, err := database.DB.Query(ctx, `
 		SELECT s.id, s.name, s.cron_expression, s.provider_id, s.provider_name, 
-					 s.is_active, s.created_at, s.updated_at, s.host_endpoint, s.host_port
+					 s.is_active, s.created_at, s.updated_at, s.host_endpoint, s.host_port, s.result_limit
 		FROM schedules s 
 		ORDER BY s.created_at DESC
 	`)
@@ -62,8 +62,9 @@ func listSchedules(w http.ResponseWriter, r *http.Request) {
 		var providerName sql.NullString
 		var hostEndpoint sql.NullString
 		var hostPort sql.NullString
+		var resultLimit sql.NullInt32
 		err := rows.Scan(&s.ID, &s.Name, &s.CronExpression, &providerID, &providerName,
-			&s.IsActive, &s.CreatedAt, &s.UpdatedAt, &hostEndpoint, &hostPort)
+			&s.IsActive, &s.CreatedAt, &s.UpdatedAt, &hostEndpoint, &hostPort, &resultLimit)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -79,6 +80,10 @@ func listSchedules(w http.ResponseWriter, r *http.Request) {
 		}
 		if hostPort.Valid {
 			s.HostPort = hostPort.String
+		}
+		if resultLimit.Valid {
+			limit := int(resultLimit.Int32)
+			s.ResultLimit = limit
 		}
 		schedules = append(schedules, s)
 	}
@@ -99,13 +104,14 @@ func getSchedule(w http.ResponseWriter, r *http.Request) {
 	var providerName sql.NullString
 	var hostEndpoint sql.NullString
 	var hostPort sql.NullString
+	var resultLimit sql.NullInt32
 	err := database.DB.QueryRow(ctx, `
 		SELECT s.id, s.name, s.cron_expression, s.provider_id, s.provider_name, 
-		       s.is_active, s.created_at, s.updated_at, s.host_endpoint, s.host_port
+		       s.is_active, s.created_at, s.updated_at, s.host_endpoint, s.host_port, s.result_limit
 		FROM schedules s 
 		WHERE s.id = $1
 	`, id).Scan(&s.ID, &s.Name, &s.CronExpression, &providerID, &providerName,
-		&s.IsActive, &s.CreatedAt, &s.UpdatedAt, &hostEndpoint, &hostPort)
+		&s.IsActive, &s.CreatedAt, &s.UpdatedAt, &hostEndpoint, &hostPort, &resultLimit)
 
 	if err == sql.ErrNoRows {
 		http.Error(w, "Schedule not found", http.StatusNotFound)
@@ -126,6 +132,10 @@ func getSchedule(w http.ResponseWriter, r *http.Request) {
 	}
 	if hostPort.Valid {
 		s.HostPort = hostPort.String
+	}
+	if resultLimit.Valid {
+		limit := int(resultLimit.Int32)
+		s.ResultLimit = limit
 	}
 
 	json.NewEncoder(w).Encode(s)
@@ -154,10 +164,10 @@ func createSchedule(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err := database.DB.QueryRow(ctx, `
-		INSERT INTO schedules (name, cron_expression, provider_id, provider_name, is_active, host_endpoint, host_port)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		INSERT INTO schedules (name, cron_expression, provider_id, provider_name, is_active, host_endpoint, host_port, result_limit)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 		RETURNING id, created_at, updated_at
-	`, s.Name, s.CronExpression, s.ProviderID, s.ProviderName, s.IsActive, hostEndpoint, hostPort).Scan(&s.ID, &s.CreatedAt, &s.UpdatedAt)
+	`, s.Name, s.CronExpression, s.ProviderID, s.ProviderName, s.IsActive, hostEndpoint, hostPort, s.ResultLimit).Scan(&s.ID, &s.CreatedAt, &s.UpdatedAt)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -175,6 +185,7 @@ func updateSchedule(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var s models.Schedule
 	if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
+		fmt.Printf("Error decoding request body: %+v\n", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -202,9 +213,9 @@ func updateSchedule(w http.ResponseWriter, r *http.Request) {
 	result, err := database.DB.Exec(ctx, `
 		UPDATE schedules 
 		SET name = $1, cron_expression = $2, provider_id = $3, provider_name = $4, is_active = $5, host_endpoint = $6, host_port = $7,
-		    updated_at = CURRENT_TIMESTAMP
-		WHERE id = $8
-	`, s.Name, s.CronExpression, s.ProviderID, s.ProviderName, s.IsActive, hostEndpoint, hostPort, id)
+		    result_limit = $8, updated_at = CURRENT_TIMESTAMP
+		WHERE id = $9
+	`, s.Name, s.CronExpression, s.ProviderID, s.ProviderName, s.IsActive, hostEndpoint, hostPort, s.ResultLimit, id)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -322,11 +333,11 @@ func loadCronJobsInternal() {
 
 				ctx := context.Background()
 				go func() {
-					fmt.Printf("Starting speed test for schedule %s with provider %s\n", s.Name, s.ProviderName)
 					speedtest.RunSpeedTests(ctx, models.SpeedTestRequest{
 						Providers:    providers,
 						HostEndpoint: s.HostEndpoint,
 						HostPort:     s.HostPort,
+						ScheduleID:   s.ID,
 					})
 				}()
 			})

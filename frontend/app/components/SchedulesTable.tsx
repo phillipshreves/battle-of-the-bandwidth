@@ -17,15 +17,17 @@ export default function SchedulesTable() {
         fetchSchedules();
     }, []);
 
-    const runSpeedTestNow = async (providerId: string, providerName: string, hostEndpoint?: string, hostPort?: string) => {
-        setRunningTest(providerId);
+    const runSpeedTestNow = async (scheduleId: string, providerId: string, providerName: string, hostEndpoint?: string, hostPort?: string) => {
+        setRunningTest(scheduleId);
         try {
             const requestBody: {
                 providers: string[];
                 hostEndpoint?: string;
                 hostPort?: string;
+                scheduleID: string;
             } = {
-                providers: [providerName]
+                providers: [providerName],
+                scheduleID: scheduleId
             };
             
             if (providerName === 'iperf3' && hostEndpoint && hostPort) {
@@ -142,6 +144,7 @@ export default function SchedulesTable() {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider">Schedule</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider">Provider</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider">Host Info</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider">Result Limit</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider">Status</th>
                             </tr>
                         </thead>
@@ -152,6 +155,7 @@ export default function SchedulesTable() {
                                         <button
                                             onClick={() => runSpeedTestNow(
                                                 schedule.id, 
+                                                schedule.provider_id,
                                                 schedule.provider_name,
                                                 schedule.host_endpoint,
                                                 schedule.host_port
@@ -171,6 +175,9 @@ export default function SchedulesTable() {
                                         ) : (
                                             '-'
                                         )}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                        {schedule.result_limit === 0 ? 'No limit' : schedule.result_limit}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                                         <div className="flex items-center space-x-2">

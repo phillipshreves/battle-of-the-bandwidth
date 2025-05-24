@@ -32,6 +32,7 @@ type SpeedTestResult struct {
 	Share         string  `json:"share"`
 	ProviderID    string  `json:"provider_id"`
 	ProviderName  string  `json:"provider_name"`
+	ScheduleID    string  `json:"schedule_id"`
 }
 
 type UserSettings struct {
@@ -57,6 +58,7 @@ type Schedule struct {
 	UpdatedAt      time.Time `json:"updated_at"`
 	HostEndpoint   string    `json:"host_endpoint"`
 	HostPort       string    `json:"host_port"`
+	ResultLimit    int       `json:"result_limit"`
 }
 
 type Provider struct {
@@ -68,6 +70,7 @@ type SpeedTestRequest struct {
 	Providers    []string `json:"providers"`
 	HostEndpoint string   `json:"hostEndpoint"`
 	HostPort     string   `json:"hostPort"`
+	ScheduleID   string   `json:"scheduleID"`
 }
 
 // Iperf3Result represents the JSON output from iperf3 command
@@ -239,5 +242,6 @@ func (i *Iperf3Result) ToSpeedTestResult(providerID, providerName string) SpeedT
 		Share:         "",
 		ProviderID:    providerID,
 		ProviderName:  providerName,
+		ScheduleID:    "",
 	}
 }

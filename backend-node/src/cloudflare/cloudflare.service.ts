@@ -40,7 +40,6 @@ export class CloudflareService {
       if (this.speedTestEngine.isRunning) {
         reject({ status: 'running' });
       } else {
-        console.log('Started speed test');
         this.speedTestEngine.restart();
         this.speedTestEngine.onFinish = results => {
           const dBandwidth = Math.trunc(results.getDownloadBandwidth() / 1000000);

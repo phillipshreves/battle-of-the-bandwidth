@@ -30,6 +30,7 @@ interface SpeedTestRequestBody {
     providers?: string[];
     hostEndpoint?: string;
     hostPort?: string;
+    scheduleID?: string;
 }
 
 const backendUrl = process.env.BACKEND_URL || 'http://localhost:8080';
@@ -81,12 +82,14 @@ export async function POST(request: Request) {
         let providers: string[] | undefined;
         let hostEndpoint: string | undefined;
         let hostPort: string | undefined;
+        let scheduleID: string | undefined;
         
         try {
             const body = await request.json();
             providers = body.providers;
             hostEndpoint = body.hostEndpoint;
             hostPort = body.hostPort;
+            scheduleID = body.scheduleID;
         } catch (error) {
             console.log('No providers specified in request body');
             console.log(error);
@@ -96,6 +99,7 @@ export async function POST(request: Request) {
         if (providers) requestBody.providers = providers;
         if (hostEndpoint) requestBody.hostEndpoint = hostEndpoint;
         if (hostPort) requestBody.hostPort = hostPort;
+        if (scheduleID) requestBody.scheduleID = scheduleID;
         
         const response = await fetch(`${backendUrl}/api/speedtest`, {
             method: 'POST',

@@ -27,7 +27,8 @@ export default function ScheduleForm() {
         host_endpoint: '',
         host_port: '',
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        result_limit: 0
     });
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -114,6 +115,14 @@ export default function ScheduleForm() {
             return;
         }
 
+        if (formData.result_limit < 0) {
+            setError('Result limit must be greater than 0');
+            setLoading(false);
+            return;
+        }
+
+        formData.result_limit = Number(formData.result_limit);
+
         try {
             const response = await fetch('/api/schedules', {
                 method: isEdit ? 'PATCH' : 'POST',
@@ -165,7 +174,7 @@ export default function ScheduleForm() {
             setFormData(prev => ({
                 ...prev,
                 provider_id: value,
-                provider_name: selectedProvider?.name || ''
+                provider_name: selectedProvider?.name || '',
             }));
         } else {
             setFormData(prev => ({
@@ -339,6 +348,24 @@ export default function ScheduleForm() {
                     <label className="text-sm font-medium text-gray-900 dark:text-white">
                         Active
                     </label>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-white">
+                        Result Limit
+                    </label>
+                    <input
+                        type="number"
+                        name="result_limit"
+                        value={formData.result_limit}
+                        onChange={handleChange}
+                        min="0"
+                        className="w-full p-2 bg-gray-50 dark:bg-slate-700 rounded border border-gray-300 dark:border-slate-600 focus:border-primary focus:ring-1 focus:ring-primary text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                        placeholder="0"
+                    />
+                    <div className="mt-1 text-sm text-gray-500 dark:text-slate-400">
+                        Maximum number of results to keep. Set to 0 for no limit.
+                    </div>
                 </div>
 
                 <div className="flex justify-end space-x-4">
