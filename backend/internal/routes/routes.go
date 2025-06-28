@@ -3,6 +3,7 @@ package routes
 import (
 	"net/http"
 
+	"github.com/phillipshreves/battle-of-the-bandwidth/backend/internal/chartcolors"
 	"github.com/phillipshreves/battle-of-the-bandwidth/backend/internal/providers"
 	"github.com/phillipshreves/battle-of-the-bandwidth/backend/internal/schedules"
 	"github.com/phillipshreves/battle-of-the-bandwidth/backend/internal/servers"
@@ -15,4 +16,5 @@ func SetupRoutes() {
 	http.HandleFunc("/api/schedules", schedules.SchedulesHandler)
 	http.HandleFunc("/api/schedules/{id}", schedules.SchedulesHandler)
 	http.HandleFunc("/api/providers", providers.ProvidersHandler)
+	http.HandleFunc("/api/chart-colors", chartcolors.ChartColorsHandler)
 }
