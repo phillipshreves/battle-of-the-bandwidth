@@ -1,6 +1,6 @@
 'use client';
 
-import {ResponsiveLine, Serie} from '@nivo/line';
+import { ResponsiveLine, Serie } from '@nivo/line';
 import { useState, useMemo } from 'react';
 import { useChartColors } from '../hooks/useChartColors';
 import SeriesColorCustomizer from './SeriesColorCustomizer';
@@ -22,15 +22,15 @@ const seriesNameToId = (seriesName: unknown): string => {
     return SERIES_NAME_TO_ID_MAP[name] || 'unknown';
 };
 
-export default function SpeedTestChart({chartData, useLocalTime = false}: SpeedTestChartProps) {
+export default function SpeedTestChart({ chartData, useLocalTime = false }: SpeedTestChartProps) {
     const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
-    const { 
-        seriesColors, 
-        setSeriesColors, 
-        isLoading: colorsLoading, 
-        isSaving, 
-        saveColors, 
-        getColorMapping 
+    const {
+        seriesColors: seriesColorConfigs,
+        setSeriesColors,
+        isLoading: colorsLoading,
+        isSaving,
+        saveColors,
+        getColorMapping
     } = useChartColors();
 
     // Recalculate color mapping whenever seriesColors changes
@@ -45,7 +45,7 @@ export default function SpeedTestChart({chartData, useLocalTime = false}: SpeedT
     });
 
     const handleSaveColors = async () => {
-        const success = await saveColors(seriesColors);
+        const success = await saveColors(seriesColorConfigs);
         if (success) {
             setIsCustomizerOpen(false);
         }
@@ -55,6 +55,24 @@ export default function SpeedTestChart({chartData, useLocalTime = false}: SpeedT
         setIsCustomizerOpen(false);
         // Note: seriesColors will remain unchanged until save is called
     };
+
+    // Create colors array matching the order of series in chartData
+    const seriesColors = useMemo(() => {
+        return styledChartData.map(serie => {
+            const seriesId = seriesNameToId(serie.id);
+            return colorMapping[seriesId]?.lineColor || '#FFFFFF';
+        });
+    }, [styledChartData, colorMapping]);
+
+    // Create a mapping from serie id (full name) to point color
+    const pointColorMapping = useMemo(() => {
+        const mapping: Record<string, string> = {};
+        styledChartData.forEach(serie => {
+            const seriesId = seriesNameToId(serie.id);
+            mapping[String(serie.id)] = colorMapping[seriesId]?.pointColor || '#FFFFFF';
+        });
+        return mapping;
+    }, [styledChartData, colorMapping]);
 
     return (
         <>
@@ -71,17 +89,18 @@ export default function SpeedTestChart({chartData, useLocalTime = false}: SpeedT
                         </svg>
                         <span>{colorsLoading ? 'Loading...' : 'Colors'}</span>
                     </button>
-                    
+
                     <span className="px-2 py-1 text-xs font-medium rounded-md bg-background/60 text-secondary">
                         Time: {useLocalTime ? 'Local' : 'UTC'}
                     </span>
                 </div>
-                
-                {chartData?.length > 0 && chartData.some(series => series?.data?.length > 0) ? (
+
+                {styledChartData?.length > 0 && styledChartData.some(series => series?.data?.length > 0) ? (
                     <ResponsiveLine
                         data={styledChartData}
-                        margin={{top: 20, right: 180, bottom: 120, left: 100}}
-                        xScale={{type: 'point'}}
+                        colors={seriesColors}
+                        margin={{ top: 20, right: 180, bottom: 120, left: 100 }}
+                        xScale={{ type: 'point' }}
                         yScale={{
                             type: 'linear',
                             min: 'auto',
@@ -107,13 +126,11 @@ export default function SpeedTestChart({chartData, useLocalTime = false}: SpeedT
                         }}
                         enablePoints={true}
                         pointSize={8}
-                        pointColor={(point: { serieId: string }) => {
-                            const seriesId = seriesNameToId(point.serieId);
-                            const customColor = colorMapping[seriesId]?.pointColor;
-                            return customColor || 'white';
+                        pointColor={(point: { id: string }) => {
+                            return pointColorMapping[point.id] || '#FFFFFF';
                         }}
                         pointBorderWidth={2}
-                        pointBorderColor={{from: 'serieColor'}}
+                        pointBorderColor={{ from: 'serieColor' }}
                         pointLabelYOffset={-12}
                         useMesh={true}
                         theme={{
@@ -181,7 +198,7 @@ export default function SpeedTestChart({chartData, useLocalTime = false}: SpeedT
             </div>
 
             <SeriesColorCustomizer
-                seriesColors={seriesColors}
+                seriesColors={seriesColorConfigs}
                 onColorsChange={setSeriesColors}
                 onSave={handleSaveColors}
                 onCancel={handleCancelCustomization}

@@ -1,0 +1,84 @@
+services:
+  botb-backend:
+    image: phillipshreves/botb-backend:latest
+    pull_policy: missing
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+      x-bake:
+        platforms:
+          - linux/amd64
+          - linux/arm64
+        tags:
+          - docker.io/phillipshreves/botb-backend:latest
+          - docker.io/phillipshreves/botb-backend:1.1.0
+    container_name: botb-backend
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      - DB_HOST=botb-db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=botb
+      - NODE_BACKEND_URL=http://botb-backend-node:3000
+    depends_on:
+      botb-db:
+        condition: service_healthy
+    ports:
+      - 8080:8080
+    restart: always
+
+  botb-backend-node:
+    image: phillipshreves/botb-backend-node:latest
+    pull_policy: missing
+    container_name: botb-backend-node
+    build:
+      context: ./backend-node
+      dockerfile: Dockerfile
+      target: production
+      x-bake:
+        platforms:
+          - linux/amd64
+          - linux/arm64
+        tags:
+          - docker.io/phillipshreves/botb-backend-node:latest
+          - docker.io/phillipshreves/botb-backend-node:1.1.0
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      - NODE_ENV=production
+    working_dir: /app/src
+    depends_on:
+      botb-db:
+        condition: service_healthy
+    restart: always
+
+  botb-db:
+    image: postgres:13
+    pull_policy: missing
+    container_name: botb-db
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: botb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d botb -U postgres"]
+      interval: 2s
+      retries: 5
+      start_period: 5s
+      timeout: 2s
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    restart: always
+    ports:
+      - 5432:5432
+
+volumes:
+  db_data:
