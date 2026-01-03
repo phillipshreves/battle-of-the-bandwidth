@@ -1,7 +1,7 @@
 interface FiltersProps {
     dateRange: [string | null, string | null];
     selectedServers: string[];
-    limit: number;
+    limitInput: string;
     availableServers: string[];
     availableProviders: { id: string, name: string }[];
     selectedProviders: string[];
@@ -18,7 +18,7 @@ interface FiltersProps {
 export default function Filters({
     dateRange,
     selectedServers,
-    limit,
+    limitInput,
     availableServers,
     availableProviders,
     selectedProviders,
@@ -59,7 +59,7 @@ export default function Filters({
     };
     
     return (
-        <div className="border-t border-secondary/20 pt-4">
+        <div>
             <button
                 onClick={onToggle}
                 className="flex items-center gap-2 text-secondary hover:text-primary transition-colors"
@@ -87,9 +87,9 @@ export default function Filters({
                                 <input
                                     type="date"
                                     placeholder="Start Date"
-                                    className="w-full px-4 py-2 rounded-lg bg-background/80 border border-secondary/20
+                                    className="w-full px-4 py-2 rounded-lg bg-background/80 border border-secondary/30
                                     focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none
-                                    transition-colors duration-200 text-secondary"
+                                    transition-colors duration-200 text-foreground"
                                     value={dateRange[0] || ''}
                                     onChange={(e) => onDateChange(0, e.target.value)}
                                 />
@@ -98,9 +98,9 @@ export default function Filters({
                                 <input
                                     type="date"
                                     placeholder="End Date"
-                                    className="w-full px-4 py-2 rounded-lg bg-background/80 border border-secondary/20
+                                    className="w-full px-4 py-2 rounded-lg bg-background/80 border border-secondary/30
                                     focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none
-                                    transition-colors duration-200 text-secondary"
+                                    transition-colors duration-200 text-foreground"
                                     value={dateRange[1] || ''}
                                     onChange={(e) => onDateChange(1, e.target.value)}
                                 />
@@ -113,14 +113,14 @@ export default function Filters({
                         <div className="flex-1 flex flex-wrap gap-2">
                             {availableServers.map((serverName) => (
                                 <div key={serverName} className="flex items-center">
-                                    <label className="flex items-center space-x-2 cursor-pointer px-3 py-2 rounded-lg bg-background/80 border border-secondary/20 hover:border-primary transition-colors">
+                                    <label className="flex items-center space-x-2 cursor-pointer px-3 py-2 rounded-lg bg-background/80 border border-secondary/30 hover:border-primary transition-colors">
                                         <input
                                             type="checkbox"
                                             className="form-checkbox h-4 w-4 text-primary rounded focus:ring-primary"
                                             checked={selectedServers.includes(serverName)}
                                             onChange={() => handleServerChange(serverName)}
                                         />
-                                        <span className="text-sm">{serverName}</span>
+                                        <span className="text-sm text-foreground">{serverName}</span>
                                     </label>
                                 </div>
                             ))}
@@ -136,14 +136,14 @@ export default function Filters({
                         <div className="flex-1 flex flex-wrap gap-2">
                             {availableProviders.map((provider) => (
                                 <div key={provider.id} className="flex items-center">
-                                    <label className="flex items-center space-x-2 cursor-pointer px-3 py-2 rounded-lg bg-background/80 border border-secondary/20 hover:border-primary transition-colors">
+                                    <label className="flex items-center space-x-2 cursor-pointer px-3 py-2 rounded-lg bg-background/80 border border-secondary/30 hover:border-primary transition-colors">
                                         <input
                                             type="checkbox"
                                             className="form-checkbox h-4 w-4 text-primary rounded focus:ring-primary"
                                             checked={selectedProviders.includes(provider.id)}
                                             onChange={() => handleProviderChange(provider.id)}
                                         />
-                                        <span className="text-sm">{provider.name}</span>
+                                        <span className="text-sm text-foreground">{provider.name}</span>
                                     </label>
                                 </div>
                             ))}
@@ -157,10 +157,10 @@ export default function Filters({
                         <label className="text-sm font-medium text-secondary w-32">Max Data Points</label>
                         <input
                             type="number"
-                            className="flex-1 px-4 py-2 rounded-lg bg-background/80 border border-secondary/20
+                            className="flex-1 px-4 py-2 rounded-lg bg-background/80 border border-secondary/30
                             focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none
-                            transition-colors duration-200 text-secondary"
-                            value={limit}
+                            transition-colors duration-200 text-foreground"
+                            value={limitInput}
                             onChange={(e) => onLimitChange(e.target.value)}
                         />
                     </div>
@@ -169,7 +169,7 @@ export default function Filters({
                     <div className="flex items-center gap-4">
                         <label className="text-sm font-medium text-secondary w-32">Time Display</label>
                         <div className="flex items-center gap-3">
-                                <span className="ml-3 text-sm font-medium">
+                                <span className="ml-3 text-sm font-medium text-foreground">
                                     UTC
                                 </span>
                             <label className="relative inline-flex items-center cursor-pointer">
@@ -183,11 +183,11 @@ export default function Filters({
                                 peer-focus:ring-primary/20 rounded-full peer 
                                 peer-checked:after:translate-x-full peer-checked:after:border-white 
                                 after:content-[''] after:absolute after:top-[2px] after:left-[2px] 
-                                after:bg-white after:border-secondary/20 after:border after:rounded-full 
+                                after:bg-white after:border-secondary/30 after:border after:rounded-full 
                                 after:h-5 after:w-5 after:transition-all peer-checked:bg-primary
                                 border border-secondary/50"></div>
                             </label>
-                                <span className="ml-3 text-sm font-medium">
+                                <span className="ml-3 text-sm font-medium text-foreground">
                                     Local Time 
                                 </span>
                         </div>

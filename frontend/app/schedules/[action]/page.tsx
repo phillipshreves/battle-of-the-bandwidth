@@ -191,16 +191,16 @@ export default function ScheduleForm() {
 
     if (isEdit && loadingSchedule) {
         return (
-            <div className="max-w-2xl mx-auto mt-8 p-6 bg-white dark:bg-slate-800 rounded-lg shadow-lg">
-                <div className="text-center py-4 text-gray-900 dark:text-white">Loading schedule...</div>
+            <div className="max-w-2xl mx-auto mt-8 p-6 glass-card">
+                <div className="text-center py-4 text-foreground">Loading schedule...</div>
             </div>
         );
     }
 
     return (
-        <div className="max-w-2xl mx-auto mt-8 p-6 bg-white dark:bg-slate-800 rounded-lg shadow-lg">
+        <div className="max-w-2xl mx-auto mt-8 p-6 glass-card">
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{isEdit ? 'Edit Schedule' : 'Create New Schedule'}</h1>
+                <h1 className="text-2xl font-bold text-foreground">{isEdit ? 'Edit Schedule' : 'Create New Schedule'}</h1>
                 <div className="flex space-x-2">
                     {isEdit && (
                         <button
@@ -213,7 +213,7 @@ export default function ScheduleForm() {
                     )}
                     <button
                         onClick={() => router.push('/')}
-                        className="px-4 py-2 bg-gray-200 dark:bg-slate-700 text-gray-900 dark:text-white rounded hover:bg-gray-300 dark:hover:bg-slate-600"
+                        className="px-4 py-2 bg-secondary/20 text-foreground rounded hover:bg-secondary/30"
                     >
                         Cancel
                     </button>
@@ -228,7 +228,7 @@ export default function ScheduleForm() {
 
             <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-white">
+                    <label className="block text-sm font-medium mb-2 text-foreground">
                         Schedule Name
                     </label>
                     <input
@@ -237,13 +237,13 @@ export default function ScheduleForm() {
                         value={formData.name}
                         onChange={handleChange}
                         required
-                        className="w-full p-2 bg-gray-50 dark:bg-slate-700 rounded border border-gray-300 dark:border-slate-600 focus:border-primary focus:ring-1 focus:ring-primary text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                        className="w-full p-2 bg-background/80 rounded border border-secondary/30 focus:border-primary focus:ring-1 focus:ring-primary text-foreground placeholder-muted"
                         placeholder="Daily Speed Test"
                     />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-white">
+                    <label className="block text-sm font-medium mb-2 text-foreground">
                         Cron Expression
                     </label>
                     <div className="relative">
@@ -253,7 +253,7 @@ export default function ScheduleForm() {
                             value={formData.cron_expression}
                             onChange={handleChange}
                             required
-                            className={`w-full p-2 bg-gray-50 dark:bg-slate-700 rounded border ${cronPreview ? 'border-green-500' : 'border-gray-300 dark:border-slate-600'} focus:border-primary focus:ring-1 focus:ring-primary text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400`}
+                            className={`w-full p-2 bg-background/80 rounded border ${cronPreview ? 'border-green-500' : 'border-secondary/30'} focus:border-primary focus:ring-1 focus:ring-primary text-foreground placeholder-muted`}
                             placeholder="0 0 * * *"
                         />
                         <button
@@ -266,30 +266,30 @@ export default function ScheduleForm() {
                     </div>
                     {cronPreview && (
                         <div className="mt-2 text-sm">
-                            <span className="text-green-500 dark:text-green-400">✓</span>{' '}
-                            <span className="text-gray-600 dark:text-slate-300">{cronPreview}</span>
+                            <span className="text-green-500">✓</span>{' '}
+                            <span className="text-secondary">{cronPreview}</span>
                         </div>
                     )}
                     {showCronHelper && (
-                        <div className="mt-2 p-4 bg-gray-50 dark:bg-slate-700 rounded-lg">
+                        <div className="mt-2 p-4 bg-background/60 rounded-lg">
                             <CronHelper onSelect={handleCronSelect} />
                         </div>
                     )}
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-white">
+                    <label className="block text-sm font-medium mb-2 text-foreground">
                         Provider
                     </label>
                     {loadingProviders ? (
-                        <div className="text-sm text-gray-500 dark:text-slate-400">Loading providers...</div>
+                        <div className="text-sm text-secondary">Loading providers...</div>
                     ) : (
                         <select
                             name="provider_id"
                             value={formData.provider_id}
                             onChange={handleChange}
                             required
-                            className="w-full p-2 bg-gray-50 dark:bg-slate-700 rounded border border-gray-300 dark:border-slate-600 focus:border-primary focus:ring-1 focus:ring-primary text-gray-900 dark:text-white"
+                            className="w-full p-2 bg-background/80 rounded border border-secondary/30 focus:border-primary focus:ring-1 focus:ring-primary text-foreground"
                         >
                             <option value="">Select a provider</option>
                             {providers.map((provider) => (
@@ -304,7 +304,7 @@ export default function ScheduleForm() {
                 {formData.provider_name === 'iperf3' && (
                     <>
                         <div>
-                            <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-white">
+                            <label className="block text-sm font-medium mb-2 text-foreground">
                                 Host Endpoint
                             </label>
                             <input
@@ -313,12 +313,12 @@ export default function ScheduleForm() {
                                 value={formData.host_endpoint || ''}
                                 onChange={handleChange}
                                 required
-                                className="w-full p-2 bg-gray-50 dark:bg-slate-700 rounded border border-gray-300 dark:border-slate-600 focus:border-primary focus:ring-1 focus:ring-primary text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                                className="w-full p-2 bg-background/80 rounded border border-secondary/30 focus:border-primary focus:ring-1 focus:ring-primary text-foreground placeholder-muted"
                                 placeholder="example.com"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-white">
+                            <label className="block text-sm font-medium mb-2 text-foreground">
                                 Host Port
                             </label>
                             <input
@@ -327,11 +327,11 @@ export default function ScheduleForm() {
                                 value={formData.host_port || ''}
                                 onChange={handleChange}
                                 required
-                                className="w-full p-2 bg-gray-50 dark:bg-slate-700 rounded border border-gray-300 dark:border-slate-600 focus:border-primary focus:ring-1 focus:ring-primary text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                                className="w-full p-2 bg-background/80 rounded border border-secondary/30 focus:border-primary focus:ring-1 focus:ring-primary text-foreground placeholder-muted"
                                 placeholder="5201"
                             />
                         </div>
-                        <div className="text-sm text-gray-500 dark:text-slate-400 mt-1">
+                        <div className="text-sm text-secondary mt-1">
                             If you do not have your own iperf3 server setup, you can find a public iperf3 server here: <a href="https://iperf.fr/iperf-servers.php" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">https://iperf.fr/iperf-servers.php</a>
                         </div>
                     </>
@@ -343,15 +343,15 @@ export default function ScheduleForm() {
                         name="is_active"
                         checked={formData.is_active}
                         onChange={handleChange}
-                        className="rounded border-gray-300 dark:border-slate-600 text-primary focus:ring-primary"
+                        className="rounded border-secondary/30 text-primary focus:ring-primary"
                     />
-                    <label className="text-sm font-medium text-gray-900 dark:text-white">
+                    <label className="text-sm font-medium text-foreground">
                         Active
                     </label>
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-white">
+                    <label className="block text-sm font-medium mb-2 text-foreground">
                         Result Limit
                     </label>
                     <input
@@ -360,10 +360,10 @@ export default function ScheduleForm() {
                         value={formData.result_limit}
                         onChange={handleChange}
                         min="0"
-                        className="w-full p-2 bg-gray-50 dark:bg-slate-700 rounded border border-gray-300 dark:border-slate-600 focus:border-primary focus:ring-1 focus:ring-primary text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                        className="w-full p-2 bg-background/80 rounded border border-secondary/30 focus:border-primary focus:ring-1 focus:ring-primary text-foreground placeholder-muted"
                         placeholder="0"
                     />
-                    <div className="mt-1 text-sm text-gray-500 dark:text-slate-400">
+                    <div className="mt-1 text-sm text-secondary">
                         Maximum number of results to keep. Set to 0 for no limit.
                     </div>
                 </div>

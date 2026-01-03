@@ -58,8 +58,8 @@ export default function ColorPickerWidget({ value, onChange, label, disabled = f
                 onClick={handleButtonClick}
                 disabled={disabled}
                 className={`
-                    w-12 h-8 rounded-md border-2 border-gray-300 relative overflow-hidden
-                    ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:border-gray-400'}
+                    w-12 h-8 rounded-md border-2 border-secondary/30 relative overflow-hidden
+                    ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:border-secondary/60'}
                     transition-colors duration-200
                 `}
                 style={{ backgroundColor: value }}

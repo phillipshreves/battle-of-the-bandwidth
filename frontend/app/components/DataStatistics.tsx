@@ -1,11 +1,11 @@
-import { Serie } from '@nivo/line';
+import { LineSeries } from '@nivo/line';
 
 interface DataStatisticsProps {
-    chartData: Serie[];
+    chartData: LineSeries[];
 }
 
 export default function DataStatistics({ chartData }: DataStatisticsProps) {
-    const calculateAverage = (data: Serie[], id: string) => {
+    const calculateAverage = (data: LineSeries[], id: string) => {
         const series = data.find(series => series.id === id);
         if (!series || !series.data.length) return 0;
         
@@ -13,7 +13,7 @@ export default function DataStatistics({ chartData }: DataStatisticsProps) {
         return (sum / series.data.length).toFixed(2);
     };
 
-    const calculateMinMax = (data: Serie[], id: string) => {
+    const calculateMinMax = (data: LineSeries[], id: string) => {
         const series = data.find(series => series.id === id);
         if (!series || !series.data.length) return { min: 0, max: 0 };
         
@@ -33,27 +33,27 @@ export default function DataStatistics({ chartData }: DataStatisticsProps) {
     const pingStats = calculateMinMax(chartData, 'Ping (ms)');
 
     return (
-        <div className="glass-card p-6 grid grid-cols-3 gap-4">
+        <div className="p-6 grid grid-cols-3 gap-4">
             <div className="text-center">
-                <h3 className="text-lg font-semibold mb-2">Download</h3>
-                <p className="text-2xl">{downloadAvg} <span className="text-sm">Mbps</span></p>
-                <div className="text-sm mt-2">
+                <h3 className="text-lg font-semibold mb-2 text-foreground">Download</h3>
+                <p className="text-2xl text-foreground">{downloadAvg} <span className="text-sm text-secondary">Mbps</span></p>
+                <div className="text-sm mt-2 text-secondary">
                     <p>Max: {downloadStats.max} Mbps</p>
                     <p>Min: {downloadStats.min} Mbps</p>
                 </div>
             </div>
             <div className="text-center">
-                <h3 className="text-lg font-semibold mb-2">Upload</h3>
-                <p className="text-2xl">{uploadAvg} <span className="text-sm">Mbps</span></p>
-                <div className="text-sm mt-2">
+                <h3 className="text-lg font-semibold mb-2 text-foreground">Upload</h3>
+                <p className="text-2xl text-foreground">{uploadAvg} <span className="text-sm text-secondary">Mbps</span></p>
+                <div className="text-sm mt-2 text-secondary">
                     <p>Max: {uploadStats.max} Mbps</p>
                     <p>Min: {uploadStats.min} Mbps</p>
                 </div>
             </div>
             <div className="text-center">
-                <h3 className="text-lg font-semibold mb-2">Ping</h3>
-                <p className="text-2xl">{pingAvg} <span className="text-sm">ms</span></p>
-                <div className="text-sm mt-2">
+                <h3 className="text-lg font-semibold mb-2 text-foreground">Ping</h3>
+                <p className="text-2xl text-foreground">{pingAvg} <span className="text-sm text-secondary">ms</span></p>
+                <div className="text-sm mt-2 text-secondary">
                     <p>Max: {pingStats.max} ms</p>
                     <p>Min: {pingStats.min} ms</p>
                 </div>

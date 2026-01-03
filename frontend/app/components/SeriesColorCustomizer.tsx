@@ -74,8 +74,8 @@ export default function SeriesColorCustomizer({
     if (!isVisible) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="glass-card max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
                 <div className="p-6">
                     <div className="flex items-center justify-between mb-6">
                         <h2 className="text-xl font-semibold text-foreground">
@@ -83,7 +83,7 @@ export default function SeriesColorCustomizer({
                         </h2>
                         <button
                             onClick={handleCancel}
-                            className="text-gray-400 hover:text-gray-600 text-2xl"
+                            className="text-muted hover:text-foreground text-2xl"
                             disabled={isLoading}
                         >
                             ×
@@ -92,7 +92,7 @@ export default function SeriesColorCustomizer({
 
                     <div className="space-y-6">
                         {seriesColors.map((series) => (
-                            <div key={series.seriesId} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                            <div key={series.seriesId} className="border border-secondary/30 rounded-lg p-4">
                                 <h3 className="text-sm font-medium text-foreground mb-3">
                                     {SERIES_DISPLAY_NAMES[series.seriesId] || series.seriesId}
                                 </h3>
@@ -116,21 +116,21 @@ export default function SeriesColorCustomizer({
                         ))}
                     </div>
 
-                    <div className="flex justify-between pt-6 mt-6 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex justify-between pt-6 mt-6 border-t border-secondary/30">
                         <button
                             onClick={handleResetToDefaults}
                             disabled={isLoading}
-                            className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 disabled:opacity-50"
+                            className="px-4 py-2 text-sm text-secondary hover:text-foreground disabled:opacity-50"
                         >
                             Reset to Defaults
                         </button>
                         
                         <div className="flex space-x-3">
-                            <button
-                                onClick={handleCancel}
-                                disabled={isLoading}
-                                className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
-                            >
+                        <button
+                            onClick={handleCancel}
+                            disabled={isLoading}
+                            className="px-4 py-2 text-sm border border-secondary/30 rounded-md text-secondary hover:bg-background/60 disabled:opacity-50"
+                        >
                                 Cancel
                             </button>
                             

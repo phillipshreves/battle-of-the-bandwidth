@@ -1,7 +1,7 @@
 'use client';
 
 import {useState, useEffect} from 'react';
-import {Serie} from '@nivo/line';
+import {LineSeries} from '@nivo/line';
 import {format, parseISO} from 'date-fns';
 import {SpeedTestData} from '@/types/types';
 import SpeedTestChart from './components/SpeedTestChart';
@@ -69,6 +69,7 @@ export default function Home() {
     const [dateRange, setDateRange] = useState<[string | null, string | null]>([null, null]);
     const [selectedServers, setSelectedServers] = useState<string[]>([]);
     const [limit, setLimit] = useState<number>(20);
+    const [limitInput, setLimitInput] = useState<string>('20');
     const [offset, setOffset] = useState<number>(0);
     const [isAdvancedFiltersOpen, setIsAdvancedFiltersOpen] = useState(false);
     const [availableServers, setAvailableServers] = useState<string[]>([]);
@@ -134,8 +135,12 @@ export default function Home() {
     };
 
     const handleLimitChange = (value: string) => {
+        setLimitInput(value);
         const newLimit = parseInt(value, 10);
-        setLimit(isNaN(newLimit) ? 10 : newLimit);
+        if (!isNaN(newLimit) && newLimit > 0) {
+            setLimit(newLimit);
+            setOffset(0);
+        }
     };
 
     const handlePreviousPage = () => {
@@ -166,7 +171,7 @@ export default function Home() {
         }
     };
 
-    const chartData: Serie[] = [
+    const chartData: LineSeries[] = [
         {
             id: "Download Speed (Mbps)",
             data: (speedTestData || [])
@@ -174,7 +179,7 @@ export default function Home() {
                     x: formatTimestamp(item.timestamp),
                     y: Math.round(Number(item.download) * 10) / 10,
                 })),
-        } as Serie,
+        },
         {
             id: "Upload Speed (Mbps)",
             data: (speedTestData || [])
@@ -182,7 +187,7 @@ export default function Home() {
                     x: formatTimestamp(item.timestamp),
                     y: Math.round(Number(item.upload) * 10) / 10,
                 })),
-        } as Serie,
+        },
         {
             id: "Ping (ms)",
             data: (speedTestData || [])
@@ -190,7 +195,7 @@ export default function Home() {
                     x: formatTimestamp(item.timestamp),
                     y: Math.round(Number(item.ping) * 10) / 10,
                 })),
-        } as Serie
+        }
     ];
 
     return (
@@ -202,14 +207,14 @@ export default function Home() {
                     <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                         Battle of the Bandwidth
                     </h1>
-                    <p className="text-lg text-gray-500">Network Performance Monitor</p>
+                    <p className="text-lg text-secondary">Network Performance Monitor</p>
                 </header>
 
                 <div className="glass-card p-6 space-y-6">
                     <Filters
                         dateRange={dateRange}
                         selectedServers={selectedServers}
-                        limit={limit}
+                        limitInput={limitInput}
                         availableServers={availableServers}
                         availableProviders={availableProviders}
                         selectedProviders={selectedProviders}
@@ -240,9 +245,9 @@ export default function Home() {
                 <SchedulesTable />
             </div>
 
-            <footer className="mt-8 text-center text-sm text-gray-500 space-y-1">
+            <footer className="mt-8 text-center text-sm text-secondary space-y-1">
                 <p>Battle of the Bandwidth by Phillip Shreves</p>
-                <p><a href="https://github.com/phillipshreves/battle-of-the-bandwidth">https://github.com/phillipshreves/battle-of-the-bandwidth</a></p>
+                <p><a href="https://github.com/phillipshreves/battle-of-the-bandwidth" className="hover:text-primary transition-colors underline">https://github.com/phillipshreves/battle-of-the-bandwidth</a></p>
                 <p>Licensed under the GNU Affero General Public License v3.0 (AGPL-3.0)</p>
             </footer>
         </main>

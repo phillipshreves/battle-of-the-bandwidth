@@ -1,12 +1,12 @@
 'use client';
 
-import { ResponsiveLine, Serie } from '@nivo/line';
+import { ResponsiveLine, LineSeries } from '@nivo/line';
 import { useState, useMemo } from 'react';
 import { useChartColors } from '../hooks/useChartColors';
 import SeriesColorCustomizer from './SeriesColorCustomizer';
 
 interface SpeedTestChartProps {
-    chartData: Serie[];
+    chartData: LineSeries[];
     useLocalTime?: boolean;
 }
 
@@ -36,13 +36,8 @@ export default function SpeedTestChart({ chartData, useLocalTime = false }: Spee
     // Recalculate color mapping whenever seriesColors changes
     const colorMapping = useMemo(() => getColorMapping(), [getColorMapping]);
 
-    const styledChartData: Serie[] = chartData.map(serie => {
-        const seriesId = seriesNameToId(serie.id);
-        return {
-            ...serie,
-            color: colorMapping[seriesId]?.lineColor || serie.color
-        };
-    });
+    // chartData is used directly - colors are applied via the colors prop
+    const styledChartData = chartData;
 
     const handleSaveColors = async () => {
         const success = await saveColors(seriesColorConfigs);
@@ -69,14 +64,14 @@ export default function SpeedTestChart({ chartData, useLocalTime = false }: Spee
         const mapping: Record<string, string> = {};
         styledChartData.forEach(serie => {
             const seriesId = seriesNameToId(serie.id);
-            mapping[String(serie.id)] = colorMapping[seriesId]?.pointColor || '#FFFFFF';
+            mapping[seriesId] = colorMapping[seriesId]?.pointColor || '#FFFFFF';
         });
         return mapping;
     }, [styledChartData, colorMapping]);
 
     return (
         <>
-            <div className="h-[600px] glass-card p-6">
+            <div className="h-[600px] p-6">
                 <div className="flex justify-between items-center mb-2">
                     <button
                         onClick={() => setIsCustomizerOpen(true)}
@@ -126,8 +121,9 @@ export default function SpeedTestChart({ chartData, useLocalTime = false }: Spee
                         }}
                         enablePoints={true}
                         pointSize={8}
-                        pointColor={(point: { id: string }) => {
-                            return pointColorMapping[point.id] || '#FFFFFF';
+                        pointColor={({ point }) => {
+                            const seriesId = seriesNameToId(point.seriesId);
+                            return pointColorMapping[seriesId] || '#FFFFFF';
                         }}
                         pointBorderWidth={2}
                         pointBorderColor={{ from: 'serieColor' }}
@@ -159,7 +155,11 @@ export default function SpeedTestChart({ chartData, useLocalTime = false }: Spee
                             },
                             tooltip: {
                                 container: {
-                                    color: 'var(--background)'
+                                    background: 'var(--background)',
+                                    color: 'var(--foreground)',
+                                    borderRadius: '8px',
+                                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                                    border: '1px solid var(--secondary)'
                                 }
                             }
                         }}
@@ -192,7 +192,7 @@ export default function SpeedTestChart({ chartData, useLocalTime = false }: Spee
                     />
                 ) : (
                     <div className="flex items-center justify-center h-full">
-                        <p className="text-secondary text-lg">No data available for the selected date range</p>
+                        <p className="text-foreground text-lg">No data available for the selected date range</p>
                     </div>
                 )}
             </div>
