@@ -125,6 +125,15 @@ All three providers have public servers you can run speed tests against.
 
 The biggest advantage of the iperf3 provider is that it can be used for internal testing. This allows you to track infrastructure changes and their effect on your network speed.
 
+## How to Release for Maintainers
+
+Release is made easy by utilizing Docker Hub. Follow these steps issue a release:
+
+1. Update docker compose file with appropriate version numbering for docker image tag.
+2. Update respective package.json files if necessary
+3. Run the following command to build and push to Docker Hub: `docker buildx bake --push`
+4. Create release notes on Github
+
 ## Acknowledgements
 
 This application utilizes [CloudFlare](https://github.com/cloudflare/speedtest?tab=readme-ov-file), [iperf3](https://iperf.fr/), and the [LibreSpeed](https://librespeed.org/) project to perform speed tests. Please visit their sponsors to support the project.
