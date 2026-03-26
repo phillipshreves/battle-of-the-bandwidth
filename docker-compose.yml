@@ -11,9 +11,9 @@ services:
           - linux/arm64
         tags:
           - docker.io/phillipshreves/botb-frontend:latest
-          - docker.io/phillipshreves/botb-frontend:1.2.0
+          - docker.io/phillipshreves/botb-frontend:1.2.1
     container_name: botb-frontend
-    env_file: 
+    env_file:
       - path: .env
         required: false
     environment:
@@ -42,7 +42,7 @@ services:
           - docker.io/phillipshreves/botb-backend:latest
           - docker.io/phillipshreves/botb-backend:1.2.0
     container_name: botb-backend
-    env_file: 
+    env_file:
       - path: .env
         required: false
     environment:
@@ -71,12 +71,13 @@ services:
           - linux/arm64
         tags:
           - docker.io/phillipshreves/botb-backend-node:latest
-          - docker.io/phillipshreves/botb-backend-node:1.2.0
-    env_file: 
+          - docker.io/phillipshreves/botb-backend-node:1.2.1
+    env_file:
       - path: .env
         required: false
     environment:
       - NODE_ENV=production
+      - SUPPRESS_CLOUDFLARE_LOGS=true
     working_dir: /app/src
     depends_on:
       botb-db:
@@ -87,7 +88,7 @@ services:
     image: postgres:13
     pull_policy: missing
     container_name: botb-db
-    env_file: 
+    env_file:
       - path: .env
         required: false
     environment:
@@ -95,7 +96,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: botb
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -d botb -U postgres" ]
+      test: ["CMD-SHELL", "pg_isready -d botb -U postgres"]
       interval: 2s
       retries: 5
       start_period: 5s
