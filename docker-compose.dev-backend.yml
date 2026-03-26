@@ -12,7 +12,6 @@ services:
           - linux/arm64
         tags:
           - docker.io/phillipshreves/botb-backend:latest
-          - docker.io/phillipshreves/botb-backend:1.1.0
     container_name: botb-backend
     env_file:
       - path: .env
@@ -45,12 +44,12 @@ services:
           - linux/arm64
         tags:
           - docker.io/phillipshreves/botb-backend-node:latest
-          - docker.io/phillipshreves/botb-backend-node:1.1.0
     env_file:
       - path: .env
         required: false
     environment:
       - NODE_ENV=production
+      - SUPPRESS_CLOUDFLARE_LOGS=false
     working_dir: /app/src
     depends_on:
       botb-db:

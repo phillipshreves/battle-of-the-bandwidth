@@ -1,9 +1,9 @@
 'use client';
 
-import {useState, useEffect} from 'react';
-import {LineSeries} from '@nivo/line';
-import {format, parseISO} from 'date-fns';
-import {SpeedTestData} from '@/types/types';
+import { useState, useEffect } from 'react';
+import { LineSeries } from '@nivo/line';
+import { format, parseISO } from 'date-fns';
+import { SpeedTestData } from '@/types/types';
 import SpeedTestChart from './components/SpeedTestChart';
 import Filters from './components/Filters';
 import Pagination from './components/Pagination';
@@ -21,46 +21,46 @@ interface FetchFilters {
 
 const defaultSpeedTestData: SpeedTestData = {
     timestamp: new Date().toISOString(),
-    server: {name: 'example', url: ''},
-    client: {ip: '', hostname: '', city: '', region: '', country: '', loc: '', org: '', postal: '', timezone: ''},
+    server: { name: 'example', url: '' },
+    client: { ip: '', hostname: '', city: '', region: '', country: '', loc: '', org: '', postal: '', timezone: '' },
     bytes_sent: 1, bytes_received: 1, ping: 1, jitter: 1, upload: 1, download: 1, share: ''
 };
 
-async function fetchSpeedTestData(filters: FetchFilters): Promise<{error: string, data: SpeedTestData[]}> {
+async function fetchSpeedTestData(filters: FetchFilters): Promise<{ error: string, data: SpeedTestData[] }> {
     const queryFilters = { ...filters };
-    
+
     const providers = queryFilters.providers;
     delete queryFilters.providers;
-    
+
     const servers = queryFilters.servers;
     delete queryFilters.servers;
-    
+
     const query = new URLSearchParams(queryFilters as Record<string, string>).toString();
-    
+
     let fullQuery = query;
-    
+
     if (providers && providers.length > 0) {
         const providersQuery = providers.map(p => `providers=${encodeURIComponent(p)}`).join('&');
         fullQuery = fullQuery ? `${fullQuery}&${providersQuery}` : providersQuery;
     }
-    
+
     if (servers && servers.length > 0) {
         const serversQuery = servers.map(s => `servers=${encodeURIComponent(s)}`).join('&');
         fullQuery = fullQuery ? `${fullQuery}&${serversQuery}` : serversQuery;
     }
-    
+
     try {
         const response = await fetch(`/api/speedtest?${fullQuery}`);
         if (!response.ok) {
             const responseJson = await response.json();
             const errorMessage = responseJson.error;
             console.error(`Error fetching speed test data: ${errorMessage}`);
-            return {error: errorMessage, data:[defaultSpeedTestData]};
+            return { error: errorMessage, data: [defaultSpeedTestData] };
         }
         return await response.json();
     } catch (error) {
         console.error("Error fetching data:", JSON.stringify(error));
-        return {error: `Error fetching data: ${error}`, data:[defaultSpeedTestData]};
+        return { error: `Error fetching data: ${error}`, data: [defaultSpeedTestData] };
     }
 }
 
@@ -109,7 +109,7 @@ export default function Home() {
         };
         fetchServers();
     }, []);
-    
+
     useEffect(() => {
         const fetchProviders = async () => {
             try {
@@ -200,14 +200,14 @@ export default function Home() {
 
     return (
         <main className="min-h-screen p-8">
-            <div className="gradient-bg fixed inset-0 -z-10"/>
+            <div className="gradient-bg fixed inset-0 -z-10" />
 
             <div className="max-w-7xl mx-auto space-y-8">
                 <header className="text-center">
-                    <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                    <h1 className="text-3xl font-mono font-bold mb-2 text-foreground tracking-tight">
                         Battle of the Bandwidth
                     </h1>
-                    <p className="text-lg text-secondary">Network Performance Monitor</p>
+                    <p className="text-sm font-mono text-muted uppercase tracking-wider">Network Performance Monitor</p>
                 </header>
 
                 <div className="glass-card p-6 space-y-6">
@@ -237,7 +237,7 @@ export default function Home() {
                     />
 
                     <DataStatistics chartData={chartData} />
-                    
+
                     <div className="hidden md:block">
                         <SpeedTestChart chartData={chartData} useLocalTime={useLocalTime} />
                     </div>
