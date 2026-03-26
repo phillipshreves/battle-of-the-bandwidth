@@ -37,9 +37,8 @@ RUN setcap cap_net_raw+p /usr/bin/ping
 
 # Get speedtest CLI
 RUN wget https://github.com/librespeed/speedtest-cli/releases/download/v1.0.11/librespeed-cli_1.0.11_linux_amd64.tar.gz -O /home/librespeed-cli_1.0.11_linux_amd64.tar.gz
-RUN tar -xvzf /home/librespeed-cli_1.0.11_linux_amd64.tar.gz -C /home/
-RUN chmod +x /home/librespeed-cli_1.0.11_linux_amd64.tar.gz
-RUN mv /home/librespeed-cli /usr/local/bin/librespeed-cli
+RUN tar -xvzf /home/librespeed-cli_1.0.11_linux_amd64.tar.gz -C /usr/local/bin
+RUN rm /home/librespeed-cli_1.0.11_linux_amd64.tar.gz
 
 # Set timezone defaults
 ENV TZ=Etc/UTC
